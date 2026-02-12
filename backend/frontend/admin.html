@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin – Kita-Infotafel</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="adminBody">
+  <div class="adminWrap">
+    <header class="adminHeader">
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="title">Admin</div>
+      </div>
+      <div class="adminActions">
+        <button id="btnSave" class="btn primary">Speichern</button>
+        <button id="btnReload" class="btn">Neu laden</button>
+        <a class="btn" href="/">Kiosk öffnen</a>
+      </div>
+    </header>
+
+    <section class="card" id="authCard">
+      <h2>Admin-Passwort</h2>
+      <p class="muted">Das Passwort wird lokal im Browser gespeichert (LocalStorage).</p>
+      <div class="row">
+        <input id="adminPw" class="input" type="password" placeholder="Passwort" />
+        <button id="btnSetPw" class="btn primary">Setzen</button>
+        <button id="btnClearPw" class="btn">Löschen</button>
+      </div>
+      <div id="authStatus" class="pill warn">Nicht verbunden</div>
+    </section>
+
+    <div class="grid2">
+      <section class="card">
+        <h2>Layout & Theme</h2>
+
+        <div class="row">
+          <label class="label">Theme</label>
+          <select id="theme" class="input">
+            <option value="mint">Mint</option>
+            <option value="ocean">Ocean</option>
+            <option value="sunset">Sunset</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="label">Modus</label>
+          <select id="mode" class="input">
+            <option value="carousel">Bildkarussell</option>
+            <option value="text">Textfeld</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="label">Info-Spalte</label>
+          <label class="toggle"><input id="showInfo" type="checkbox" /><span></span></label>
+        </div>
+
+        <div class="row">
+          <label class="label">Liveticker</label>
+          <label class="toggle"><input id="showTicker" type="checkbox" /><span></span></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Karussell</h2>
+        <div class="row">
+          <label class="label">Intervall (Sek.)</label>
+          <input id="intervalSec" class="input" type="number" min="3" max="120" step="1" />
+        </div>
+        <div class="row">
+          <label class="label">Shuffle</label>
+          <label class="toggle"><input id="shuffle" type="checkbox" /><span></span></label>
+        </div>
+        <div class="row">
+          <label class="label">Ordner</label>
+          <select id="carouselFolders" class="input" multiple size="6"></select>
+        </div>
+        <p class="muted">Tipp: Mehrfachauswahl mit STRG/CTRL oder SHIFT.</p>
+      </section>
+
+      <section class="card">
+        <h2>Textfeld</h2>
+        <div class="row">
+          <label class="label">Titel</label>
+          <input id="textTitle" class="input" type="text" />
+        </div>
+        <label class="label">Markdown</label>
+        <textarea id="textMarkdown" class="textarea" rows="10" placeholder="Markdown…"></textarea>
+        <p class="muted">Unterstützt: Überschriften (#), Listen (-), **fett**, *kursiv*.</p>
+      </section>
+
+      <section class="card">
+        <h2>Info-Boxen</h2>
+
+        <div class="row">
+          <label class="label">Wetter</label>
+          <label class="toggle"><input id="weatherEnabled" type="checkbox" /><span></span></label>
+        </div>
+        <div class="row">
+          <label class="label">Stadt (Label)</label>
+          <input id="weatherCity" class="input" type="text" />
+        </div>
+        <div class="row">
+          <label class="label">Latitude</label>
+          <input id="weatherLat" class="input" type="number" step="0.0001" />
+        </div>
+        <div class="row">
+          <label class="label">Longitude</label>
+          <input id="weatherLon" class="input" type="number" step="0.0001" />
+        </div>
+
+        <hr class="hr" />
+
+        <h3>Betreuungsampel</h3>
+        <div class="row">
+          <label class="label">Status</label>
+          <select id="ampelStatus" class="input">
+            <option value="green">Grün</option>
+            <option value="yellow">Gelb</option>
+            <option value="red">Rot</option>
+          </select>
+        </div>
+        <div class="row">
+          <label class="label">Label</label>
+          <input id="ampelLabel" class="input" type="text" />
+        </div>
+        <label class="label">Details (Markdown)</label>
+        <textarea id="ampelDetails" class="textarea" rows="4"></textarea>
+
+        <hr class="hr" />
+
+        <h3>Eigene Box (1)</h3>
+        <div class="row">
+          <label class="label">Aktiv</label>
+          <label class="toggle"><input id="customBoxEnabled" type="checkbox" /><span></span></label>
+        </div>
+        <div class="row">
+          <label class="label">Titel</label>
+          <input id="customBoxTitle" class="input" type="text" />
+        </div>
+        <label class="label">Markdown</label>
+        <textarea id="customBoxMarkdown" class="textarea" rows="4"></textarea>
+
+      </section>
+
+      <section class="card">
+        <h2>Liveticker</h2>
+        <div class="row">
+          <label class="label">Geschwindigkeit</label>
+          <input id="tickerSpeed" class="input" type="number" min="20" max="220" />
+        </div>
+        <label class="label">Einträge (eine Zeile pro Eintrag)</label>
+        <textarea id="tickerItems" class="textarea" rows="8"></textarea>
+      </section>
+
+      <section class="card">
+        <h2>Bilder & Ordner</h2>
+
+        <div class="row">
+          <input id="newFolderName" class="input" type="text" placeholder="Neuer Ordnername" />
+          <button id="btnCreateFolder" class="btn primary">Ordner anlegen</button>
+        </div>
+
+        <div id="folderList" class="folderList"></div>
+
+        <p class="muted">
+          Hinweis: Bilder werden beim Upload automatisch verkleinert (max. 1920px Kante) und als WebP gespeichert.
+        </p>
+      </section>
+    </div>
+
+    <footer class="adminFooter muted">
+      Läuft im LAN? Dann setz bitte ein starkes Admin-Passwort. 👍
+    </footer>
+  </div>
+
+  <script type="module" src="/static/admin.js"></script>
+</body>
+</html>

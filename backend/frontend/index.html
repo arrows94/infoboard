@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kita-Infotafel</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="title">Kita-Infotafel</div>
+      </div>
+      <div class="statusline">
+        <div id="clock" class="clock">--:--</div>
+        <div id="date" class="date">----</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section id="mainPanel" class="mainPanel">
+        <!-- carousel or text injected -->
+      </section>
+
+      <aside id="infoColumn" class="infoColumn">
+        <!-- boxes injected -->
+      </aside>
+    </main>
+
+    <footer id="ticker" class="ticker">
+      <div class="tickerTrack" id="tickerTrack"></div>
+    </footer>
+  </div>
+
+  <script type="module" src="/static/kiosk.js"></script>
+</body>
+</html>
