@@ -271,7 +271,7 @@ function render(state){
   // layout toggles
   const infoCol = document.getElementById("infoColumn");
   infoCol.style.display = cfg.layout?.show_info_column ? "flex" : "none";
-  document.querySelector(".layout").style.gridTemplateColumns = cfg.layout?.show_info_column ? "1fr 360px" : "1fr";
+  document.querySelector(".layout").style.gridTemplateColumns = cfg.layout?.show_info_column ? "1fr 280px" : "1fr";
 
   // main content
   const main = document.getElementById("mainPanel");
