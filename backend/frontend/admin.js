@@ -80,6 +80,7 @@ function bindConfigToForm(){
   document.getElementById("customBoxMarkdown").value = custom.markdown ?? "";
 
   document.getElementById("tickerSpeed").value = config.ticker?.speed ?? 70;
+  document.getElementById("tickerEnabled").checked = !!config.ticker?.enabled;
   document.getElementById("tickerItems").value = (config.ticker?.items || []).join("\n");
 
   // folders multiselect
@@ -129,6 +130,7 @@ function readFormToConfig(){
   const tickerSpeed = clamp(parseInt(document.getElementById("tickerSpeed").value || "70", 10), 20, 220);
   const tickerItems = document.getElementById("tickerItems").value
     .split("\n").map(s => s.trim()).filter(Boolean);
+  const tickerEnabled = document.getElementById("tickerEnabled").checked;
 
   const folderSelect = document.getElementById("carouselFolders");
   const selected = Array.from(folderSelect.selectedOptions).map(o => o.value);
@@ -148,8 +150,7 @@ function readFormToConfig(){
     custom: [{ title: customTitle, markdown: customMarkdown, enabled: customEnabled }],
   };
 
-  config.ticker = { ...config.ticker, enabled: true, speed: tickerSpeed, items: tickerItems };
-}
+config.ticker = { ...config.ticker, enabled: tickerEnabled, speed: tickerSpeed, items: tickerItems };}
 
 function folderImages(folderId){
   return (imagesIndex?.[folderId] || []);
