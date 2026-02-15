@@ -11,6 +11,7 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
+from PIL import Image, ImageOps
 
 import httpx
 from fastapi import (
@@ -334,6 +335,7 @@ def _save_image_list_for(folder_id: str, images: List[Dict[str, Any]]) -> None:
 
 def _resize_and_store(src_path: Path, dst_path: Path) -> Tuple[int, int]:
     with Image.open(src_path) as im:
+        im = ImageOps.exif_transpose(im)
         im = im.convert("RGB")
         w, h = im.size
         scale = min(1.0, float(MAX_IMAGE_EDGE) / max(w, h))
@@ -345,6 +347,7 @@ def _resize_and_store(src_path: Path, dst_path: Path) -> Tuple[int, int]:
 
 def _make_thumb(src_path: Path, dst_path: Path) -> None:
     with Image.open(src_path) as im:
+        im = ImageOps.exif_transpose(im)
         im = im.convert("RGB")
         w, h = im.size
         scale = min(1.0, float(THUMB_EDGE) / max(w, h))
