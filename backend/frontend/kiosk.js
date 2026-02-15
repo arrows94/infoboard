@@ -167,7 +167,7 @@ function buildInfoColumn(cfg, weather){
   
 const eventBox = buildEventBox(cfg);
   if (eventBox) col.appendChild(eventBox);
-}
+
   // Ampel
   const ab = el("div","box");
   const ah = el("h3");
