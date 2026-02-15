@@ -154,7 +154,7 @@ function buildInfoColumn(cfg, weather){
       if (Array.isArray(weather.daily) && weather.daily[0]){
         const d0 = weather.daily[0];
         const small = el("div","small");
-        small.textContent = `Heute: ${Math.round(d0.tmin)}–${Math.round(d0.tmax)}°`;
+        small.textContent = `Heute: ${Math.round(d0.tmin)} – ${Math.round(d0.tmax)}°`;
         box.appendChild(small);
       }
     } else {
