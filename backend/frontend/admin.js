@@ -83,6 +83,11 @@ function bindConfigToForm(){
   document.getElementById("tickerEnabled").checked = !!config.ticker?.enabled;
   document.getElementById("tickerItems").value = (config.ticker?.items || []).join("\n");
 
+  // Events
+  document.getElementById("eventsEnabled").checked = !!config.events?.enabled;
+  document.getElementById("eventsTitle").value = config.events?.title ?? "Termine";
+  document.getElementById("eventsItems").value = (config.events?.items || []).join("\n");
+
   // folders multiselect
   const sel = document.getElementById("carouselFolders");
   sel.innerHTML = "";
@@ -131,6 +136,14 @@ function readFormToConfig(){
   const tickerItems = document.getElementById("tickerItems").value
     .split("\n").map(s => s.trim()).filter(Boolean);
   const tickerEnabled = document.getElementById("tickerEnabled").checked;
+
+  // Events lesen
+  const eventsEnabled = document.getElementById("eventsEnabled").checked;
+  const eventsTitle = document.getElementById("eventsTitle").value;
+  const eventsItems = document.getElementById("eventsItems").value
+    .split("\n").map(s => s.trim()).filter(Boolean);
+
+  config.events = { enabled: eventsEnabled, title: eventsTitle, items: eventsItems };
 
   const folderSelect = document.getElementById("carouselFolders");
   const selected = Array.from(folderSelect.selectedOptions).map(o => o.value);
