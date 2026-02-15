@@ -164,7 +164,10 @@ function buildInfoColumn(cfg, weather){
     }
     col.appendChild(box);
   }
-
+  
+const eventBox = buildEventBox(cfg);
+  if (eventBox) col.appendChild(eventBox);
+}
   // Ampel
   const ab = el("div","box");
   const ah = el("h3");
@@ -262,6 +265,68 @@ function startTicker(cfg){
 
 function destroyMainPanel(panel){
   if (panel && panel.__destroy) panel.__destroy();
+}
+
+function buildEventBox(cfg){
+  if (!cfg.events?.enabled) return null;
+  
+  const box = el("div", "box");
+  const h = el("h3");
+  h.textContent = cfg.events?.title || "Termine";
+  box.appendChild(h);
+
+  const list = el("div", "eventList");
+  const items = cfg.events?.items || [];
+  
+  // Helper: Parse DD.MM.YYYY
+  const parseDate = (str) => {
+    const parts = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/);
+    if (!parts) return null;
+    return {
+      d: parseInt(parts[1],10),
+      m: parseInt(parts[2],10)-1, // JS months are 0-11
+      y: parseInt(parts[3],10),
+      text: parts[4].trim(),
+      fullDate: new Date(parseInt(parts[3],10), parseInt(parts[2],10)-1, parseInt(parts[1],10))
+    };
+  };
+
+  // Filter & Render
+  const today = new Date();
+  today.setHours(0,0,0,0); // Reset time to compare dates only
+
+  let count = 0;
+  for (const raw of items){
+    const ev = parseDate(raw);
+    if (!ev) continue; // Skip invalid format
+
+    // Zeige Termin nur, wenn er heute oder in Zukunft ist
+    if (ev.fullDate >= today){
+      const row = el("div", "eventItem");
+      
+      const dateEl = el("div", "eventDate");
+      // Formatiere Datum hübsch: 15.03.
+      const dStr = String(ev.d).padStart(2,'0') + "." + String(ev.m+1).padStart(2,'0') + ".";
+      dateEl.textContent = dStr;
+      
+      const textEl = el("div", "eventText");
+      textEl.textContent = ev.text;
+
+      row.append(dateEl, textEl);
+      list.appendChild(row);
+      count++;
+    }
+  }
+
+  if (count === 0){
+    const empty = el("div", "small");
+    empty.textContent = "Aktuell keine Termine.";
+    box.appendChild(empty);
+  } else {
+    box.appendChild(list);
+  }
+
+  return box;
 }
 
 function render(state){
