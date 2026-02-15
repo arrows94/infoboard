@@ -123,6 +123,16 @@ def default_config() -> Dict[str, Any]:
                 "lon": DEFAULT_LON,
                 "units": "metric",
             },
+            # EVENTS
+        "events": {
+            "enabled": True,
+            "title": "Nächste Termine",
+            "items": [
+                "24.12.2026 Weihnachtsfeier",
+                "01.01.2027 Neujahr"
+            ]
+        },
+        # --------------------
             "ampel": {
                 "status": "green",  # green | yellow | red
                 "label": "Betreuung normal",
