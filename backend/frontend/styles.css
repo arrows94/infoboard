@@ -411,3 +411,25 @@ a{ color: inherit; text-decoration:none; }
 .eventText{
   color: rgba(255,255,255,0.9);
 }
+
+/* Ordner Karten Hover Effekt */
+.folder-card:hover {
+  background: #333 !important;
+}
+
+/* Bild-Container im Detail-View */
+.img-wrap {
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 0.1s;
+}
+
+.img-wrap:active {
+  transform: scale(0.98);
+}
+
+/* Damit die Checkboxen gut sichtbar sind */
+.img-select-box {
+  cursor: pointer;
+  accent-color: var(--accent);
+}

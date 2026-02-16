@@ -175,71 +175,199 @@ function el(tag, cls){
   return e;
 }
 
-function renderFolders(){
-  const wrap = document.getElementById("folderList");
-  wrap.innerHTML = "";
-  for (const f of folders.folders){
-    const card = el("div","folder");
-    const top = el("div","folderTop");
-    const left = el("div");
-    const name = el("div","folderName");
-    name.textContent = f.name;
-    const meta = el("div","folderMeta");
-    meta.textContent = `slug: ${f.slug} · ${folderImages(f.id).length} Bilder`;
-    left.append(name, meta);
+// Globale Variablen für die Auswahl
+let currentFolderImages = [];
+let selectedImages = new Set();
+let currentFolderPath = "";
 
-    const actions = el("div","folderActions");
+function renderFolders() {
+  const container = document.getElementById("folderList");
+  container.innerHTML = "";
+  
+  // Stelle sicher, dass wir in der Übersicht sind
+  document.getElementById("folderList").style.display = "block";
+  document.getElementById("folderDetail").style.display = "none";
 
-    const up = document.createElement("input");
-    up.type = "file";
-    up.multiple = true;
-    up.accept = "image/*";
-    up.className = "input";
-    up.style.maxWidth = "260px";
+  const folders = Object.keys(imagesData).sort();
 
-    const btnUpload = el("button","btn primary");
-    btnUpload.textContent = "Upload";
-    btnUpload.onclick = async () => {
-      if (!up.files || up.files.length === 0) return;
-      await uploadToFolder(f.id, up.files);
-      up.value = "";
-    };
-
-    const btnDel = el("button","btn");
-    btnDel.textContent = "Ordner löschen";
-    btnDel.onclick = async () => {
-      if (!confirm(`Ordner "${f.name}" wirklich löschen? (inkl. Bilder)`)) return;
-      await apiDelete(`/api/folders/${f.id}`);
-      await reloadAll();
-    };
-
-    actions.append(up, btnUpload, btnDel);
-
-    top.append(left, actions);
-    card.appendChild(top);
-
-    const thumbs = el("div","thumbGrid");
-    const ims = folderImages(f.id);
-    for (const im of ims.slice(-18).reverse()){
-      const t = el("div","thumb");
-      const img = document.createElement("img");
-      img.src = `/media/${f.slug}/${im.thumb || im.filename}`;
-      img.loading = "lazy";
-      const del = document.createElement("button");
-      del.textContent = "×";
-      del.title = "Bild löschen";
-      del.onclick = async () => {
-        if (!confirm("Bild löschen?")) return;
-        await apiDelete(`/api/folders/${f.id}/images/${im.id}`);
-        await reloadAll();
-      };
-      t.append(img, del);
-      thumbs.appendChild(t);
-    }
-    card.appendChild(thumbs);
-
-    wrap.appendChild(card);
+  if (folders.length === 0) {
+    container.innerHTML = "<p class='muted'>Keine Bilder gefunden.</p>";
+    return;
   }
+
+  for (const folder of folders) {
+    const ims = imagesData[folder] || [];
+    
+    // Ordner-Karte erstellen
+    const card = el("div", "folder-card");
+    card.onclick = () => openFolder(folder); // Klick öffnet Details
+    card.style.cursor = "pointer";
+    card.style.border = "1px solid #444";
+    card.style.borderRadius = "8px";
+    card.style.padding = "10px";
+    card.style.marginBottom = "10px";
+    card.style.background = "#2a2a2a";
+
+    // Titel & Anzahl
+    const head = el("div");
+    head.innerHTML = `<strong>${folder}</strong> <span class="muted">(${ims.length} Bilder)</span>`;
+    card.appendChild(head);
+
+    // Mini-Vorschau (max 5 Bilder)
+    const preview = el("div");
+    preview.style.display = "flex";
+    preview.style.gap = "5px";
+    preview.style.marginTop = "8px";
+    preview.style.overflow = "hidden";
+    
+    for (const im of ims.slice(0, 5)) {
+      const thumb = el("img");
+      thumb.src = im.thumb || im.src;
+      thumb.style.width = "40px";
+      thumb.style.height = "40px";
+      thumb.style.objectFit = "cover";
+      thumb.style.borderRadius = "4px";
+      preview.appendChild(thumb);
+    }
+    card.appendChild(preview);
+    container.appendChild(card);
+  }
+}
+
+// Öffnet die Detail-Ansicht
+function openFolder(folder) {
+  currentFolderPath = folder;
+  currentFolderImages = imagesData[folder] || [];
+  selectedImages.clear();
+  updateDeleteButton();
+
+  document.getElementById("folderList").style.display = "none";
+  document.getElementById("folderDetail").style.display = "block";
+  document.getElementById("detailTitle").textContent = folder;
+  document.getElementById("selectAllBox").checked = false;
+
+  const grid = document.getElementById("detailGrid");
+  grid.innerHTML = "";
+
+  // Alle Bilder anzeigen
+  for (const im of currentFolderImages) {
+    const wrap = el("div", "img-wrap");
+    wrap.style.position = "relative";
+    wrap.style.cursor = "pointer";
+    
+    // Klick auf das Bild toggelt Checkbox
+    wrap.onclick = (e) => {
+      // Verhindern, dass Klick auf Checkbox doppelt feuert
+      if (e.target.type !== 'checkbox') {
+        toggleSelection(im.filename);
+      }
+    };
+
+    const img = el("img");
+    img.src = im.thumb || im.src;
+    img.loading = "lazy";
+    
+    // Checkbox overlay
+    const check = el("input");
+    check.type = "checkbox";
+    check.className = "img-select-box";
+    check.style.position = "absolute";
+    check.style.top = "5px";
+    check.style.left = "5px";
+    check.style.transform = "scale(1.5)";
+    check.style.zIndex = "10";
+    check.checked = selectedImages.has(im.filename);
+    check.onchange = () => toggleSelection(im.filename);
+
+    // ID für einfaches Finden
+    wrap.dataset.filename = im.filename; 
+
+    wrap.appendChild(img);
+    wrap.appendChild(check);
+    grid.appendChild(wrap);
+  }
+}
+
+function closeFolder() {
+  document.getElementById("folderList").style.display = "block";
+  document.getElementById("folderDetail").style.display = "none";
+}
+
+// Ein einzelnes Bild markieren/demarkieren
+function toggleSelection(filename) {
+  if (selectedImages.has(filename)) {
+    selectedImages.delete(filename);
+  } else {
+    selectedImages.add(filename);
+  }
+  
+  // Visuelles Update (Rahmen um Bild)
+  const wraps = document.querySelectorAll("#detailGrid .img-wrap");
+  wraps.forEach(w => {
+    const checkbox = w.querySelector("input[type='checkbox']");
+    if (w.dataset.filename === filename) {
+        checkbox.checked = selectedImages.has(filename);
+        w.style.outline = selectedImages.has(filename) ? "3px solid var(--accent)" : "none";
+    }
+  });
+
+  updateDeleteButton();
+}
+
+// "Alle auswählen" Checkbox Logik
+function toggleSelectAll(checkbox) {
+  const isChecked = checkbox.checked;
+  selectedImages.clear();
+  
+  if (isChecked) {
+    currentFolderImages.forEach(im => selectedImages.add(im.filename));
+  }
+  
+  // UI aktualisieren
+  const wraps = document.querySelectorAll("#detailGrid .img-wrap");
+  wraps.forEach(w => {
+     w.querySelector("input").checked = isChecked;
+     w.style.outline = isChecked ? "3px solid var(--accent)" : "none";
+  });
+  updateDeleteButton();
+}
+
+function updateDeleteButton() {
+  const btn = document.getElementById("btnDeleteSelected");
+  if (selectedImages.size > 0) {
+    btn.style.display = "inline-block";
+    btn.textContent = `${selectedImages.size} Bilder löschen`;
+  } else {
+    btn.style.display = "none";
+  }
+}
+
+async function deleteSelected() {
+  if (!confirm(`Wirklich ${selectedImages.size} Bilder löschen?`)) return;
+
+  const btn = document.getElementById("btnDeleteSelected");
+  btn.disabled = true;
+  btn.textContent = "Lösche...";
+
+  // Für jedes Bild eine Lösch-Anfrage senden
+  for (const filename of selectedImages) {
+    try {
+      await apiDelete(currentFolderPath, filename);
+    } catch (e) {
+      console.error("Fehler beim Löschen von", filename, e);
+    }
+  }
+
+  // Daten neu laden und Ansicht aktualisieren
+  await loadImages();
+  // Wenn der Ordner leer ist, zurück zur Übersicht, sonst Refresh
+  if (!imagesData[currentFolderPath] || imagesData[currentFolderPath].length === 0) {
+    closeFolder();
+  } else {
+    openFolder(currentFolderPath);
+  }
+  
+  btn.disabled = false;
 }
 
 async function uploadToFolder(folderId, fileList){
@@ -320,5 +448,9 @@ async function init(){
     setAuthStatus(false);
   }
 }
+
+window.closeFolder = closeFolder;
+window.toggleSelectAll = toggleSelectAll;
+window.deleteSelected = deleteSelected;
 
 init();

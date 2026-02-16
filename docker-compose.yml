@@ -8,7 +8,7 @@ services:
       # Setze das Admin-Passwort (wird in der Adminseite abgefragt)
       ADMIN_PASSWORD: "change-me"
       # Optional: Default-Standort für Wetter (kann auch im Admin geändert werden)
-      DEFAULT_CITY: "Eichsfeld"
+      DEFAULT_CITY: "Brehme"
       DEFAULT_LAT: "51.3"
       DEFAULT_LON: "10.3"
       TZ: "Europe/Berlin"
