@@ -1,10 +1,11 @@
-
 import { markdownToHtml, clamp } from "./utils.js";
 
 let adminPw = localStorage.getItem("kita_admin_pw") || "";
 let config = null;
-let folders = null;
-let imagesIndex = null;
+let folders = null;     // Die Liste der Ordner (aus /api/folders)
+let imagesIndex = null; // Die Bilder zu den Ordnern (aus /api/state)
+
+// --- Basis Funktionen ---
 
 function setTheme(theme){
   document.body.dataset.theme = theme || "mint";
@@ -27,6 +28,8 @@ function setAuthStatus(ok){
     el.className = "pill warn";
   }
 }
+
+// --- API Wrapper ---
 
 async function apiGet(path){
   const r = await fetch(path, { headers: headers(), cache: "no-store" });
@@ -51,6 +54,8 @@ async function apiDelete(path){
   if (!r.ok) throw new Error(`${path} failed: ${r.status}`);
   return await r.json();
 }
+
+// --- Formular & Config Logik ---
 
 function bindConfigToForm(){
   setTheme(config.theme);
@@ -83,22 +88,24 @@ function bindConfigToForm(){
   document.getElementById("tickerEnabled").checked = !!config.ticker?.enabled;
   document.getElementById("tickerItems").value = (config.ticker?.items || []).join("\n");
 
-  // Events
+  // Events (Termine)
   document.getElementById("eventsEnabled").checked = !!config.events?.enabled;
   document.getElementById("eventsTitle").value = config.events?.title ?? "Termine";
   document.getElementById("eventsItems").value = (config.events?.items || []).join("\n");
 
-  // folders multiselect
+  // Ordner Auswahl für Karussell
   const sel = document.getElementById("carouselFolders");
   sel.innerHTML = "";
-  for (const f of folders.folders){
-    const opt = document.createElement("option");
-    opt.value = f.id;
-    opt.textContent = f.name;
-    sel.appendChild(opt);
+  if (folders && folders.folders) {
+    for (const f of folders.folders){
+      const opt = document.createElement("option");
+      opt.value = f.id;
+      opt.textContent = f.name;
+      sel.appendChild(opt);
+    }
   }
+  
   if (config.carousel?.folders === "all"){
-    // none selected means "all"
     sel.value = "";
   } else if (Array.isArray(config.carousel?.folders)){
     for (const opt of sel.options){
@@ -143,16 +150,14 @@ function readFormToConfig(){
   const eventsItems = document.getElementById("eventsItems").value
     .split("\n").map(s => s.trim()).filter(Boolean);
 
-  config.events = { enabled: eventsEnabled, title: eventsTitle, items: eventsItems };
-
   const folderSelect = document.getElementById("carouselFolders");
   const selected = Array.from(folderSelect.selectedOptions).map(o => o.value);
   const carouselFolders = selected.length === 0 ? "all" : selected;
 
+  // Config Objekt zusammenbauen
   config.theme = theme;
   config.layout = { ...config.layout, mode, show_info_column: showInfo, show_ticker: showTicker };
   config.carousel = { ...config.carousel, interval_sec: intervalSec, shuffle, folders: carouselFolders };
-
   config.text_panel = { title: textTitle, markdown: textMarkdown };
 
   config.info_boxes = {
@@ -163,10 +168,8 @@ function readFormToConfig(){
     custom: [{ title: customTitle, markdown: customMarkdown, enabled: customEnabled }],
   };
 
-config.ticker = { ...config.ticker, enabled: tickerEnabled, speed: tickerSpeed, items: tickerItems };}
-
-function folderImages(folderId){
-  return (imagesIndex?.[folderId] || []);
+  config.ticker = { ...config.ticker, enabled: tickerEnabled, speed: tickerSpeed, items: tickerItems };
+  config.events = { enabled: eventsEnabled, title: eventsTitle, items: eventsItems };
 }
 
 function el(tag, cls){
@@ -175,58 +178,96 @@ function el(tag, cls){
   return e;
 }
 
-// Globale Variablen für die Auswahl
+// --- Bilder & Ordner Management (Neu & Korrigiert) ---
+
+let currentFolderId = "";
 let currentFolderImages = [];
-let selectedImages = new Set();
-let currentFolderPath = "";
+let selectedImages = new Set(); // Speichert IDs der ausgewählten Bilder
 
 function renderFolders() {
   const container = document.getElementById("folderList");
   container.innerHTML = "";
   
-  // Stelle sicher, dass wir in der Übersicht sind
+  // Ansicht umschalten
   document.getElementById("folderList").style.display = "block";
   document.getElementById("folderDetail").style.display = "none";
 
-  const folders = Object.keys(imagesData).sort();
+  const fList = folders?.folders || [];
 
-  if (folders.length === 0) {
-    container.innerHTML = "<p class='muted'>Keine Bilder gefunden.</p>";
+  if (fList.length === 0) {
+    container.innerHTML = "<p class='muted'>Keine Ordner vorhanden. Lege oben einen an.</p>";
     return;
   }
 
-  for (const folder of folders) {
-    const ims = imagesData[folder] || [];
+  for (const f of fList) {
+    const ims = imagesIndex?.[f.id] || [];
     
-    // Ordner-Karte erstellen
+    // Karte
     const card = el("div", "folder-card");
-    card.onclick = () => openFolder(folder); // Klick öffnet Details
-    card.style.cursor = "pointer";
-    card.style.border = "1px solid #444";
-    card.style.borderRadius = "8px";
-    card.style.padding = "10px";
-    card.style.marginBottom = "10px";
-    card.style.background = "#2a2a2a";
-
-    // Titel & Anzahl
-    const head = el("div");
-    head.innerHTML = `<strong>${folder}</strong> <span class="muted">(${ims.length} Bilder)</span>`;
-    card.appendChild(head);
-
-    // Mini-Vorschau (max 5 Bilder)
-    const preview = el("div");
-    preview.style.display = "flex";
-    preview.style.gap = "5px";
-    preview.style.marginTop = "8px";
-    preview.style.overflow = "hidden";
+    // Inline Styles für Layout (damit es ohne CSS-Update funktioniert)
+    card.style.cssText = "cursor:pointer; border:1px solid #444; border-radius:8px; padding:10px; margin-bottom:10px; background:#2a2a2a;";
     
-    for (const im of ims.slice(0, 5)) {
+    card.onclick = (e) => {
+      // Klick auf Buttons ignorieren
+      if(["BUTTON", "INPUT"].includes(e.target.tagName)) return;
+      openFolder(f.id, f.name);
+    };
+
+    // Header Zeile
+    const top = el("div");
+    top.style.cssText = "display:flex; justify-content:space-between; align-items:center;";
+    
+    const title = el("div");
+    title.innerHTML = `<strong>${f.name}</strong> <span class="muted">(${ims.length} Bilder)</span>`;
+    
+    // Actions (Upload / Delete)
+    const actions = el("div");
+    actions.style.display = "flex";
+    actions.style.gap = "8px";
+
+    // Verstecktes File Input für Upload
+    const upInput = document.createElement("input");
+    upInput.type = "file"; 
+    upInput.multiple = true; 
+    upInput.accept = "image/*";
+    upInput.style.display = "none";
+    upInput.onchange = async () => {
+      if(!upInput.files.length) return;
+      await uploadToFolder(f.id, upInput.files);
+      upInput.value = ""; 
+      await reloadAll();
+    };
+
+    const btnUp = el("button", "btn primary");
+    btnUp.textContent = "Upload";
+    btnUp.style.padding = "4px 10px";
+    btnUp.style.fontSize = "14px";
+    btnUp.onclick = (e) => { e.stopPropagation(); upInput.click(); };
+
+    const btnDel = el("button", "btn");
+    btnDel.textContent = "Ordner löschen";
+    btnDel.style.padding = "4px 10px";
+    btnDel.style.fontSize = "14px";
+    btnDel.onclick = async (e) => { 
+      e.stopPropagation();
+      if(confirm(`Ordner "${f.name}" wirklich komplett löschen?`)) {
+        await apiDelete(`/api/folders/${f.id}`);
+        await reloadAll();
+      }
+    };
+
+    actions.append(btnUp, btnDel);
+    top.append(title, actions);
+    card.appendChild(top);
+
+    // Vorschau (Thumbnails)
+    const preview = el("div");
+    preview.style.cssText = "display:flex; gap:5px; margin-top:8px; overflow:hidden;";
+    
+    for (const im of ims.slice(0, 6)) {
       const thumb = el("img");
-      thumb.src = im.thumb || im.src;
-      thumb.style.width = "40px";
-      thumb.style.height = "40px";
-      thumb.style.objectFit = "cover";
-      thumb.style.borderRadius = "4px";
+      thumb.src = `/media/${f.slug}/${im.thumb || im.filename}`;
+      thumb.style.cssText = "width:40px; height:40px; object-fit:cover; border-radius:4px;";
       preview.appendChild(thumb);
     }
     card.appendChild(preview);
@@ -234,53 +275,46 @@ function renderFolders() {
   }
 }
 
-// Öffnet die Detail-Ansicht
-function openFolder(folder) {
-  currentFolderPath = folder;
-  currentFolderImages = imagesData[folder] || [];
+function openFolder(folderId, folderName) {
+  currentFolderId = folderId;
+  currentFolderImages = imagesIndex?.[folderId] || [];
+  
+  // Slug finden für URLs
+  const fObj = folders.folders.find(x => x.id === folderId);
+  const slug = fObj ? fObj.slug : "";
+
   selectedImages.clear();
   updateDeleteButton();
 
   document.getElementById("folderList").style.display = "none";
   document.getElementById("folderDetail").style.display = "block";
-  document.getElementById("detailTitle").textContent = folder;
+  document.getElementById("detailTitle").textContent = folderName;
   document.getElementById("selectAllBox").checked = false;
 
   const grid = document.getElementById("detailGrid");
   grid.innerHTML = "";
 
-  // Alle Bilder anzeigen
   for (const im of currentFolderImages) {
     const wrap = el("div", "img-wrap");
-    wrap.style.position = "relative";
-    wrap.style.cursor = "pointer";
+    wrap.style.cssText = "position:relative; cursor:pointer; display:inline-block; margin:5px;";
     
-    // Klick auf das Bild toggelt Checkbox
     wrap.onclick = (e) => {
-      // Verhindern, dass Klick auf Checkbox doppelt feuert
-      if (e.target.type !== 'checkbox') {
-        toggleSelection(im.filename);
-      }
+      if (e.target.type !== 'checkbox') toggleSelection(im.id);
     };
 
     const img = el("img");
-    img.src = im.thumb || im.src;
+    img.src = `/media/${slug}/${im.thumb || im.filename}`;
     img.loading = "lazy";
+    img.style.cssText = "height:120px; border-radius:4px; display:block;";
     
-    // Checkbox overlay
     const check = el("input");
     check.type = "checkbox";
-    check.className = "img-select-box";
-    check.style.position = "absolute";
-    check.style.top = "5px";
-    check.style.left = "5px";
-    check.style.transform = "scale(1.5)";
-    check.style.zIndex = "10";
-    check.checked = selectedImages.has(im.filename);
-    check.onchange = () => toggleSelection(im.filename);
+    check.style.cssText = "position:absolute; top:5px; left:5px; transform:scale(1.3); cursor:pointer;";
+    check.checked = selectedImages.has(im.id);
+    check.onchange = () => toggleSelection(im.id);
 
-    // ID für einfaches Finden
-    wrap.dataset.filename = im.filename; 
+    // Dataset ID speichern für schnelles UI Update
+    wrap.dataset.imgid = im.id;
 
     wrap.appendChild(img);
     wrap.appendChild(check);
@@ -293,37 +327,35 @@ function closeFolder() {
   document.getElementById("folderDetail").style.display = "none";
 }
 
-// Ein einzelnes Bild markieren/demarkieren
-function toggleSelection(filename) {
-  if (selectedImages.has(filename)) {
-    selectedImages.delete(filename);
+function toggleSelection(id) {
+  if (selectedImages.has(id)) {
+    selectedImages.delete(id);
   } else {
-    selectedImages.add(filename);
+    selectedImages.add(id);
   }
   
-  // Visuelles Update (Rahmen um Bild)
+  // UI Rahmen aktualisieren
   const wraps = document.querySelectorAll("#detailGrid .img-wrap");
   wraps.forEach(w => {
-    const checkbox = w.querySelector("input[type='checkbox']");
-    if (w.dataset.filename === filename) {
-        checkbox.checked = selectedImages.has(filename);
-        w.style.outline = selectedImages.has(filename) ? "3px solid var(--accent)" : "none";
+    if (w.dataset.imgid == id) {
+        const cb = w.querySelector("input");
+        cb.checked = selectedImages.has(id);
+        w.style.outline = selectedImages.has(id) ? "3px solid var(--accent)" : "none";
     }
   });
 
   updateDeleteButton();
 }
 
-// "Alle auswählen" Checkbox Logik
 function toggleSelectAll(checkbox) {
   const isChecked = checkbox.checked;
   selectedImages.clear();
   
   if (isChecked) {
-    currentFolderImages.forEach(im => selectedImages.add(im.filename));
+    currentFolderImages.forEach(im => selectedImages.add(im.id));
   }
   
-  // UI aktualisieren
+  // Alle Checkboxen updaten
   const wraps = document.querySelectorAll("#detailGrid .img-wrap");
   wraps.forEach(w => {
      w.querySelector("input").checked = isChecked;
@@ -349,22 +381,23 @@ async function deleteSelected() {
   btn.disabled = true;
   btn.textContent = "Lösche...";
 
-  // Für jedes Bild eine Lösch-Anfrage senden
-  for (const filename of selectedImages) {
+  // Bilder nacheinander löschen
+  for (const imgId of selectedImages) {
     try {
-      await apiDelete(currentFolderPath, filename);
+      await apiDelete(`/api/folders/${currentFolderId}/images/${imgId}`);
     } catch (e) {
-      console.error("Fehler beim Löschen von", filename, e);
+      console.error("Fehler beim Löschen:", e);
     }
   }
 
-  // Daten neu laden und Ansicht aktualisieren
-  await loadImages();
-  // Wenn der Ordner leer ist, zurück zur Übersicht, sonst Refresh
-  if (!imagesData[currentFolderPath] || imagesData[currentFolderPath].length === 0) {
-    closeFolder();
+  await reloadAll();
+  
+  // Wenn Ordner noch existiert, Ansicht aktualisieren
+  const fObj = folders.folders.find(x => x.id === currentFolderId);
+  if (fObj) {
+    openFolder(fObj.id, fObj.name);
   } else {
-    openFolder(currentFolderPath);
+    closeFolder();
   }
   
   btn.disabled = false;
@@ -384,17 +417,21 @@ async function uploadToFolder(folderId, fileList){
   return await r.json();
 }
 
+// --- App State ---
+
 async function reloadAll(){
   config = await apiGet("/api/config");
-  folders = await apiGet("/api/folders");
+  folders = await apiGet("/api/folders"); // { folders: [...] }
   const state = await fetch("/api/state", { cache:"no-store" }).then(r => r.json());
-  imagesIndex = state.images;
+  imagesIndex = state.images; // { "folderID": [img1, img2...], ... }
+  
   bindConfigToForm();
   renderFolders();
   setAuthStatus(true);
 }
 
 function bindButtons(){
+  // Passwort Buttons
   document.getElementById("btnSetPw").onclick = () => {
     adminPw = document.getElementById("adminPw").value || "";
     localStorage.setItem("kita_admin_pw", adminPw);
@@ -406,27 +443,34 @@ function bindButtons(){
     document.getElementById("adminPw").value = "";
     setAuthStatus(false);
   };
+  
+  // Global Actions
   document.getElementById("btnReload").onclick = () => reloadAll().catch(() => setAuthStatus(false));
   document.getElementById("btnSave").onclick = async () => {
     try{
       readFormToConfig();
       await apiPut("/api/config", config);
       setAuthStatus(true);
-      alert("Gespeichert. Kiosk aktualisiert automatisch.");
+      alert("Gespeichert. Kiosk aktualisiert sich in Kürze.");
     }catch(e){
       console.error(e);
       setAuthStatus(false);
-      alert("Speichern fehlgeschlagen (Passwort korrekt?)");
+      alert("Speichern fehlgeschlagen (Passwort prüfen?)");
     }
   };
 
-  document.getElementById("btnCreateFolder").onclick = async () => {
-    const name = document.getElementById("newFolderName").value.trim();
-    if (!name) return;
-    await apiPost("/api/folders", { name });
-    document.getElementById("newFolderName").value = "";
-    await reloadAll();
-  };
+  // Neuen Ordner erstellen
+  const btnCreate = document.getElementById("btnCreateFolder");
+  if(btnCreate) {
+    btnCreate.onclick = async () => {
+      const inp = document.getElementById("newFolderName");
+      const name = inp.value.trim();
+      if (!name) return;
+      await apiPost("/api/folders", { name });
+      inp.value = "";
+      await reloadAll();
+    };
+  }
 }
 
 function initAuthUi(){
@@ -449,6 +493,7 @@ async function init(){
   }
 }
 
+// Funktionen global verfügbar machen (für HTML onclicks)
 window.closeFolder = closeFolder;
 window.toggleSelectAll = toggleSelectAll;
 window.deleteSelected = deleteSelected;
