@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin – Kita-Infotafel</title>
+  <title>Admin – Infotafel</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body class="adminBody">
@@ -175,17 +175,23 @@
 
       <section class="card">
         <h2>Bilder & Ordner</h2>
+        
+        <div id="folderList">
+           </div>
 
-        <div class="row">
-          <input id="newFolderName" class="input" type="text" placeholder="Neuer Ordnername" />
-          <button id="btnCreateFolder" class="btn primary">Ordner anlegen</button>
+        <div id="folderDetail" style="display:none;">
+          <div class="row" style="align-items: center; margin-bottom: 15px;">
+            <button class="btn" onclick="closeFolder()" style="margin-right:auto;">← Zurück</button>
+            <h3 id="detailTitle" style="margin:0 15px;">Ordnername</h3>
+            <button class="btn danger" onclick="deleteSelected()" id="btnDeleteSelected" style="display:none;">Markierte Löschen</button>
+          </div>
+          
+          <div class="row">
+            <label><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this)"> Alle auswählen</label>
+          </div>
+
+          <div id="detailGrid" class="thumbs"></div>
         </div>
-
-        <div id="folderList" class="folderList"></div>
-
-        <p class="muted">
-          Hinweis: Bilder werden beim Upload automatisch verkleinert (max. 1920px Kante) und als WebP gespeichert.
-        </p>
       </section>
     </div>
 
