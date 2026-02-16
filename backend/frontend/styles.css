@@ -27,6 +27,7 @@ body{
   background: radial-gradient(1200px 800px at 20% 0%, rgba(255,255,255,0.08), transparent 55%),
               radial-gradient(1200px 800px at 90% 10%, rgba(94,234,212,0.13), transparent 50%),
               var(--bg);
+  background-attachment: fixed;
   color:var(--text);
   font-family:var(--font);
   overflow:hidden;
