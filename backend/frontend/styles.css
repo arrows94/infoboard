@@ -433,3 +433,76 @@ a{ color: inherit; text-decoration:none; }
   cursor: pointer;
   accent-color: var(--accent);
 }
+/* --- Admin: Ordner & Bilder Styling --- */
+
+/* Die Karte für einen Ordner */
+.folder-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  transition: background 0.2s, transform 0.1s;
+}
+.folder-card:hover {
+  background: rgba(255, 255, 255, 0.1) !important; /* Heller beim Drüberfahren */
+}
+.folder-card:active {
+  transform: scale(0.99);
+}
+
+/* Kopfzeile im Ordner (Name links, Buttons rechts) */
+.folderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.folderName {
+  font-weight: 700;
+  font-size: 1.1em;
+}
+.folderMeta {
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+/* Grid für die Detail-Ansicht (Bilder) */
+.thumbGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Einzelnes Bild-Wrapper */
+.img-wrap {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 0.1s;
+  /* Standard-Rahmen (unsichtbar), damit es nicht springt wenn ausgewählt */
+  border: 3px solid transparent; 
+}
+.img-wrap:hover {
+  transform: scale(1.02);
+}
+.img-wrap img {
+  display: block;
+  background: #000;
+}
+
+/* Checkbox auf dem Bild vergrößern */
+.img-select-box {
+  cursor: pointer;
+  accent-color: var(--accent); /* Nutzt die Theme-Farbe */
+  width: 20px;
+  height: 20px;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* Buttons in der Ordner-Leiste etwas kompakter machen */
+.folderActions .btn {
+  padding: 4px 10px;
+  font-size: 0.9em;
+}
