@@ -419,7 +419,7 @@ async def put_config(request: Request) -> Dict[str, Any]:
         raise HTTPException(status_code=400, detail="config must be an object")
     cfg = load_config()
     # allow overwrite of known top-level keys only to keep it safer
-    for key in ["theme","layout","carousel","text_panel","info_boxes","ticker","autorefresh"]:
+    for key in ["theme","layout","carousel","text_panel","info_boxes","ticker","autorefresh","events"]:
         if key in payload:
             cfg[key] = payload[key]
     save_config(cfg)
