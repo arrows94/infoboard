@@ -395,7 +395,9 @@ async function init(){
     try{
       const s2 = await fetchState();
       // naive diff: compare config string
-      if (JSON.stringify(s2.config) !== JSON.stringify(state.config) || JSON.stringify(s2.images) !== JSON.stringify(state.images)){
+      if (JSON.stringify(s2.config) !== JSON.stringify(state.config) || 
+          JSON.stringify(s2.images) !== JSON.stringify(state.images) ||
+          JSON.stringify(s2.weather) !== JSON.stringify(state.weather)) {
         state = s2;
         render(state);
       }
