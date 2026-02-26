@@ -51,6 +51,7 @@ function pickCarouselImages(cfg, folders, imagesIndex){
     for (const im of ims){
       list.push({
         ...im,
+        type: im.type || "image",
         folder_id: fid,
         folder_slug: folder.slug,
         folder_name: folder.name,
@@ -81,24 +82,75 @@ function buildCarousel(cfg, folders, imagesIndex){
     return empty;
   }
 
+  if (images.length === 1) {
+      const item = images[0];
+      const s = el("div", "slide active"); // active immediately
+
+      const cap = el("div", "caption");
+      cap.textContent = item.folder_name;
+
+      if (item.type === "video") {
+          const vid = document.createElement("video");
+          vid.src = item.url;
+          vid.style.width = "100%";
+          vid.style.height = "100%";
+          vid.style.objectFit = "cover";
+          vid.autoplay = true;
+          vid.loop = true;
+          vid.muted = false;
+          s.appendChild(vid);
+      } else {
+          const img = document.createElement("img");
+          img.src = item.url;
+          img.style.width = "100%";
+          img.style.height = "100%";
+          img.style.objectFit = "cover";
+          s.appendChild(img);
+      }
+      s.appendChild(cap);
+      container.appendChild(s);
+      return container;
+  }
+
   // two-slide crossfade pool (more performant)
   for (let i=0; i<2; i++){
     const s = el("div","slide");
+
     const img = document.createElement("img");
     img.loading = "eager";
     img.decoding = "async";
+
+    const vid = document.createElement("video");
+    vid.style.display = "none";
+    vid.style.width = "100%";
+    vid.style.height = "100%";
+    vid.style.objectFit = "cover";
+    vid.preload = "auto";
+
     const cap = el("div","caption");
+
     s.appendChild(img);
+    s.appendChild(vid);
     s.appendChild(cap);
     container.appendChild(s);
-    slides.push({ root: s, img, cap });
+    slides.push({ root: s, img, vid, cap });
   }
 
   let idx = 0;
   let active = 0;
 
   function setSlide(slot, image){
-    slot.img.src = image.url;
+    if (image.type === "video") {
+        slot.img.style.display = "none";
+        slot.vid.style.display = "block";
+        slot.vid.src = image.url;
+        slot.vid.muted = false;
+    } else {
+        slot.vid.style.display = "none";
+        slot.img.style.display = "block";
+        slot.img.src = image.url;
+        slot.vid.src = ""; // unload video
+    }
     slot.cap.textContent = image.folder_name;
   }
 
@@ -106,22 +158,73 @@ function buildCarousel(cfg, folders, imagesIndex){
   slides[0].root.classList.add("active");
 
   const interval = clamp(parseInt(cfg.carousel?.interval_sec ?? 10, 10), 3, 120) * 1000;
+  let timer = null;
 
-  const timer = setInterval(() => {
+  function scheduleNext() {
     idx = (idx + 1) % images.length;
-    const next = images[idx];
+    const nextItem = images[idx];
     const nextSlot = 1 - active;
 
-    setSlide(slides[nextSlot], next);
+    setSlide(slides[nextSlot], nextItem);
 
     slides[nextSlot].root.classList.add("active");
     slides[active].root.classList.remove("active");
 
+    // cleanup previous video after transition
+    const prevSlot = active;
+    setTimeout(() => {
+       if (slides[prevSlot].vid) {
+           slides[prevSlot].vid.pause();
+           slides[prevSlot].vid.currentTime = 0;
+       }
+    }, 1000);
+
     active = nextSlot;
-  }, interval);
+
+    if (nextItem.type === "video") {
+        const vid = slides[nextSlot].vid;
+        vid.currentTime = 0;
+        vid.muted = false;
+
+        const onEnded = () => {
+            vid.removeEventListener("ended", onEnded);
+            scheduleNext();
+        };
+        vid.addEventListener("ended", onEnded);
+
+        vid.play().catch(e => {
+            console.error("Video play failed", e);
+            timer = setTimeout(scheduleNext, interval);
+        });
+    } else {
+        timer = setTimeout(scheduleNext, interval);
+    }
+  }
+
+  // Start logic
+  const firstItem = images[0];
+  if (firstItem.type === "video") {
+      const vid = slides[0].vid;
+      vid.currentTime = 0;
+      vid.muted = false;
+      const onEnded = () => {
+          vid.removeEventListener("ended", onEnded);
+          scheduleNext();
+      };
+      vid.addEventListener("ended", onEnded);
+      vid.play().catch(e => {
+           console.error("First video play failed", e);
+           timer = setTimeout(scheduleNext, interval);
+      });
+  } else {
+      timer = setTimeout(scheduleNext, interval);
+  }
 
   // cleanup hook
-  container.__destroy = () => clearInterval(timer);
+  container.__destroy = () => {
+      clearTimeout(timer);
+      slides.forEach(s => { if(s.vid) s.vid.pause(); });
+  };
 
   return container;
 }

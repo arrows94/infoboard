@@ -265,10 +265,17 @@ function renderFolders() {
     preview.style.cssText = "display:flex; gap:5px; margin-top:8px; overflow:hidden;";
     
     for (const im of ims.slice(0, 6)) {
-      const thumb = el("img");
-      thumb.src = `/media/${f.slug}/${im.thumb || im.filename}`;
-      thumb.style.cssText = "width:40px; height:40px; object-fit:cover; border-radius:4px;";
-      preview.appendChild(thumb);
+      if (im.type === "video") {
+        const d = el("div");
+        d.textContent = "VIDEO";
+        d.style.cssText = "width:40px; height:40px; background:#444; color:#fff; font-size:8px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-weight:bold;";
+        preview.appendChild(d);
+      } else {
+        const thumb = el("img");
+        thumb.src = `/media/${f.slug}/${im.thumb || im.filename}`;
+        thumb.style.cssText = "width:40px; height:40px; object-fit:cover; border-radius:4px;";
+        preview.appendChild(thumb);
+      }
     }
     card.appendChild(preview);
     container.appendChild(card);
@@ -302,10 +309,18 @@ function openFolder(folderId, folderName) {
       if (e.target.type !== 'checkbox') toggleSelection(im.id);
     };
 
-    const img = el("img");
-    img.src = `/media/${slug}/${im.thumb || im.filename}`;
-    img.loading = "lazy";
-    img.style.cssText = "height:120px; border-radius:4px; display:block;";
+    let content;
+    if (im.type === "video") {
+        content = document.createElement("video");
+        content.src = `/media/${slug}/${im.filename}`;
+        content.preload = "metadata";
+        content.style.cssText = "height:120px; border-radius:4px; display:block; background:#000;";
+    } else {
+        content = el("img");
+        content.src = `/media/${slug}/${im.thumb || im.filename}`;
+        content.loading = "lazy";
+        content.style.cssText = "height:120px; border-radius:4px; display:block;";
+    }
     
     const check = el("input");
     check.type = "checkbox";
@@ -316,7 +331,7 @@ function openFolder(folderId, folderName) {
     // Dataset ID speichern für schnelles UI Update
     wrap.dataset.imgid = im.id;
 
-    wrap.appendChild(img);
+    wrap.appendChild(content);
     wrap.appendChild(check);
     grid.appendChild(wrap);
   }
