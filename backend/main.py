@@ -43,6 +43,8 @@ THUMB_EDGE = 480
 OUTPUT_FORMAT = "WEBP"  # Chromium supports WebP well (size win)
 OUTPUT_QUALITY = 85
 
+ALLOWED_VIDEO_EXTS = {".mp4", ".webm", ".mov"}
+
 # ---- Utilities ----
 
 def _atomic_write_json(path: Path, data: Any) -> None:
@@ -513,12 +515,45 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
             continue
 
         orig_name = safe_filename(up.filename or "upload")
+        ext = os.path.splitext(orig_name)[1].lower()
+
         tmp_path = DATA_DIR / "tmp_upload"
         tmp_path.mkdir(parents=True, exist_ok=True)
         tmp_file = tmp_path / f"{uuid.uuid4().hex}_{orig_name}"
         tmp_file.write_bytes(contents)
 
         img_id = uuid.uuid4().hex
+
+        # Check for video
+        if ext in ALLOWED_VIDEO_EXTS:
+            filename = f"{img_id.lower()}{ext}"
+            dst = folder_dir / filename
+            # Move tmp file to dst directly
+            try:
+                shutil.move(str(tmp_file), str(dst))
+            except Exception:
+                # cleanup if move fails
+                try:
+                    tmp_file.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                continue
+
+            meta = {
+                "id": img_id,
+                "type": "video",
+                "filename": filename,
+                "thumb": None,
+                "original_name": orig_name,
+                "uploaded_at": now_iso(),
+                "width": 0,
+                "height": 0,
+            }
+            images.append(meta)
+            added.append(meta)
+            continue
+
+        # Handle Image
         filename = f"{img_id.lower()}.webp"
         dst = folder_dir / filename
         thumb = folder_dir / f"{img_id.lower()}_thumb.webp"
@@ -541,6 +576,7 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
 
         meta = {
             "id": img_id,
+            "type": "image",
             "filename": filename,
             "thumb": f"{img_id.lower()}_thumb.webp",
             "original_name": orig_name,
@@ -576,7 +612,9 @@ async def delete_image(folder_id: str, image_id: str, request: Request) -> Dict[
     # delete files
     try:
         (folder_dir / removed["filename"]).unlink(missing_ok=True)
-        (folder_dir / removed.get("thumb","")).unlink(missing_ok=True)
+        thumb = removed.get("thumb")
+        if thumb:
+            (folder_dir / thumb).unlink(missing_ok=True)
     except Exception:
         pass
 
