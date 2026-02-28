@@ -559,8 +559,9 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
         thumb = folder_dir / f"{img_id.lower()}_thumb.webp"
 
         try:
-            w, h = _resize_and_store(tmp_file, dst)
-            _make_thumb(tmp_file, thumb)
+            loop = asyncio.get_running_loop()
+            w, h = await loop.run_in_executor(None, _resize_and_store, tmp_file, dst)
+            await loop.run_in_executor(None, _make_thumb, tmp_file, thumb)
         except Exception:
             # not an image or corrupted
             try:
