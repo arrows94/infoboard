@@ -13,6 +13,30 @@ Eine moderne, performante Infotafel für einen Kindergarten – optimiert für e
 
 ---
 
+## Widgets & Features im Detail
+
+Die Kiosk-Ansicht ist in drei Hauptbereiche unterteilt:
+
+### 1. Hauptbereich (Main Area)
+Der Hauptbereich nimmt den größten Teil des Bildschirms ein und kann in einem von zwei Modi betrieben werden:
+- **Bildkarussell (Carousel Mode):** Zeigt eine automatisch ablaufende Diashow aus hochgeladenen Bildern und Videos.
+  - **Funktionen:** Einstellbares Intervall, zufällige Wiedergabe (Shuffle) und rekursives Scheduling für Medien mit unterschiedlichen Längen (z.B. Videos). Bilder werden aus Leistungsgründen statisch ohne aufwendige CSS-Übergänge gerendert.
+  - **Medien:** Unterstützt `.mp4`, `.webm`, `.mov` für Videos (nativ gespeichert) sowie gängige Bildformate (werden beim Upload automatisch verkleinert und platzsparend ins WebP-Format konvertiert).
+- **Textfeld (Text Panel Mode):** Eine statische, durch Markdown formatierbare Textfläche, ideal für Willkommensnachrichten oder allgemeine, dauerhafte Ankündigungen.
+
+### 2. Info-Spalte (Sidebar)
+Auf der rechten Seite befindet sich eine optionale Informationsspalte, die verschiedene Widgets enthalten kann:
+- **Wetter (Weather Widget):** Zeigt das aktuelle Wetter sowie eine 3-Tage-Vorschau an. Die Daten stammen kostenfrei und ohne API-Key von Open-Meteo. Der Standort (Koordinaten) kann in den Einstellungen angepasst werden.
+- **Betreuungsampel (Care Status Traffic Light):** Ein visuelles Signal (Grün, Gelb, Rot) mit anpassbarem Text, um Eltern sofort über die aktuelle Betreuungssituation (z.B. Normalbetrieb, Notbetreuung, Engpass) zu informieren.
+- **Termine (Events List):** Eine Liste mit den nächsten anstehenden Terminen (z.B. Weihnachtsfeier, Schließtage).
+- **Eigene Info-Boxen (Custom Info Boxes):** Beliebig viele zusätzliche Textboxen, die Markdown unterstützen. Nützlich für spezifische Hinweise oder Erinnerungen.
+
+### 3. Liveticker (Footer)
+Am unteren Bildschirmrand kann optional ein Laufband (Scrolling Ticker) aktiviert werden.
+- **Funktion:** Ideal für sehr dringende oder kurze Nachrichten (z.B. "Bitte Hausschuhe beschriften!"). Die Geschwindigkeit des Laufbands ist einstellbar.
+
+---
+
 ## Start
 
 1) Repo/Ordner holen und in das Projektverzeichnis wechseln.
