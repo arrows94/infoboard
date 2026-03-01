@@ -354,11 +354,22 @@ function startTicker(cfg){
   }
   track.appendChild(content);
 
-  let x = track.clientWidth;
+  // Cache layout measurements outside the animation loop to prevent layout thrashing
+  // which causes forced synchronous layout 60 times a second.
+  let trackWidth = track.clientWidth;
+  let contentWidth = content.scrollWidth;
+  let x = trackWidth;
+
   function step(){
     x -= speed / 60;
-    const w = content.scrollWidth;
-    if (x < -w) x = track.clientWidth;
+
+    if (x < -contentWidth) {
+      // Recalculate only when wrapping in case container or content changed
+      trackWidth = track.clientWidth;
+      contentWidth = content.scrollWidth;
+      x = trackWidth;
+    }
+
     content.style.transform = `translateX(${x}px)`;
     tickerAnim = requestAnimationFrame(step);
   }
