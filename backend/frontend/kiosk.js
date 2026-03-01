@@ -1,31 +1,35 @@
-
 import { markdownToHtml, wxCodeToLabel, clamp } from "./utils.js";
 
 let state = null;
 let ws = null;
 let tickerAnim = null;
 
-function setTheme(theme){
+function setTheme(theme) {
   document.body.dataset.theme = theme || "mint";
 }
 
-function el(tag, cls){
+function el(tag, cls) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
   return e;
 }
 
-function setClock(){
+function setClock() {
   const d = new Date();
-  const hh = String(d.getHours()).padStart(2,"0");
-  const mm = String(d.getMinutes()).padStart(2,"0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
   document.getElementById("clock").textContent = `${hh}:${mm}`;
-  const dateFmt = d.toLocaleDateString("de-DE", { weekday:"long", year:"numeric", month:"long", day:"2-digit" });
+  const dateFmt = d.toLocaleDateString("de-DE", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+  });
   document.getElementById("date").textContent = dateFmt;
 }
 
-function buildTextPanel(cfg){
-  const wrap = el("div","kioskText");
+function buildTextPanel(cfg) {
+  const wrap = el("div", "kioskText");
   const h1 = el("h1");
   h1.textContent = cfg.text_panel?.title || "Info";
   wrap.appendChild(h1);
@@ -36,19 +40,19 @@ function buildTextPanel(cfg){
   return wrap;
 }
 
-function pickCarouselImages(cfg, folders, imagesIndex){
+function pickCarouselImages(cfg, folders, imagesIndex) {
   let folderIds = [];
-  if (cfg.carousel?.folders === "all"){
-    folderIds = folders.map(f => f.id);
-  } else if (Array.isArray(cfg.carousel?.folders)){
+  if (cfg.carousel?.folders === "all") {
+    folderIds = folders.map((f) => f.id);
+  } else if (Array.isArray(cfg.carousel?.folders)) {
     folderIds = cfg.carousel.folders;
   }
   const list = [];
-  for (const fid of folderIds){
-    const folder = folders.find(f => f.id === fid);
+  for (const fid of folderIds) {
+    const folder = folders.find((f) => f.id === fid);
     if (!folder) continue;
     const ims = imagesIndex?.[fid] || [];
-    for (const im of ims){
+    for (const im of ims) {
       list.push({
         ...im,
         type: im.type || "image",
@@ -62,59 +66,59 @@ function pickCarouselImages(cfg, folders, imagesIndex){
   return list;
 }
 
-function shuffleInPlace(arr){
-  for (let i=arr.length-1; i>0; i--){
-    const j = Math.floor(Math.random() * (i+1));
-    [arr[i],arr[j]] = [arr[j],arr[i]];
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
 
-function buildCarousel(cfg, folders, imagesIndex){
-  const container = el("div","carousel");
+function buildCarousel(cfg, folders, imagesIndex) {
+  const container = el("div", "carousel");
 
   const slides = [];
   let images = pickCarouselImages(cfg, folders, imagesIndex);
   if (cfg.carousel?.shuffle) images = shuffleInPlace(images);
-  if (images.length === 0){
-    const empty = el("div","kioskText");
+  if (images.length === 0) {
+    const empty = el("div", "kioskText");
     empty.innerHTML = `<h1>Keine Bilder</h1><p>Bitte in der Adminseite einen Ordner anlegen und Bilder hochladen.</p>`;
     return empty;
   }
 
   if (images.length === 1) {
-      const item = images[0];
-      const s = el("div", "slide active"); // active immediately
+    const item = images[0];
+    const s = el("div", "slide active"); // active immediately
 
-      const cap = el("div", "caption");
-      cap.textContent = item.folder_name;
+    const cap = el("div", "caption");
+    cap.textContent = item.folder_name;
 
-      if (item.type === "video") {
-          const vid = document.createElement("video");
-          vid.src = item.url;
-          vid.style.width = "100%";
-          vid.style.height = "100%";
-          vid.style.objectFit = "cover";
-          vid.autoplay = true;
-          vid.loop = true;
-          vid.muted = false;
-          s.appendChild(vid);
-      } else {
-          const img = document.createElement("img");
-          img.src = item.url;
-          img.style.width = "100%";
-          img.style.height = "100%";
-          img.style.objectFit = "cover";
-          s.appendChild(img);
-      }
-      s.appendChild(cap);
-      container.appendChild(s);
-      return container;
+    if (item.type === "video") {
+      const vid = document.createElement("video");
+      vid.src = item.url;
+      vid.style.width = "100%";
+      vid.style.height = "100%";
+      vid.style.objectFit = "cover";
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.muted = false;
+      s.appendChild(vid);
+    } else {
+      const img = document.createElement("img");
+      img.src = item.url;
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      s.appendChild(img);
+    }
+    s.appendChild(cap);
+    container.appendChild(s);
+    return container;
   }
 
   // two-slide crossfade pool (more performant)
-  for (let i=0; i<2; i++){
-    const s = el("div","slide");
+  for (let i = 0; i < 2; i++) {
+    const s = el("div", "slide");
 
     const img = document.createElement("img");
     img.loading = "eager";
@@ -127,7 +131,7 @@ function buildCarousel(cfg, folders, imagesIndex){
     vid.style.objectFit = "cover";
     vid.preload = "auto";
 
-    const cap = el("div","caption");
+    const cap = el("div", "caption");
 
     s.appendChild(img);
     s.appendChild(vid);
@@ -139,17 +143,17 @@ function buildCarousel(cfg, folders, imagesIndex){
   let idx = 0;
   let active = 0;
 
-  function setSlide(slot, image){
+  function setSlide(slot, image) {
     if (image.type === "video") {
-        slot.img.style.display = "none";
-        slot.vid.style.display = "block";
-        slot.vid.src = image.url;
-        slot.vid.muted = false;
+      slot.img.style.display = "none";
+      slot.vid.style.display = "block";
+      slot.vid.src = image.url;
+      slot.vid.muted = false;
     } else {
-        slot.vid.style.display = "none";
-        slot.img.style.display = "block";
-        slot.img.src = image.url;
-        slot.vid.src = ""; // unload video
+      slot.vid.style.display = "none";
+      slot.img.style.display = "block";
+      slot.img.src = image.url;
+      slot.vid.src = ""; // unload video
     }
     slot.cap.textContent = image.folder_name;
   }
@@ -157,7 +161,8 @@ function buildCarousel(cfg, folders, imagesIndex){
   setSlide(slides[0], images[0]);
   slides[0].root.classList.add("active");
 
-  const interval = clamp(parseInt(cfg.carousel?.interval_sec ?? 10, 10), 3, 120) * 1000;
+  const interval =
+    clamp(parseInt(cfg.carousel?.interval_sec ?? 10, 10), 3, 120) * 1000;
   let timer = null;
 
   function scheduleNext() {
@@ -173,131 +178,133 @@ function buildCarousel(cfg, folders, imagesIndex){
     // cleanup previous video after transition
     const prevSlot = active;
     setTimeout(() => {
-       if (slides[prevSlot].vid) {
-           slides[prevSlot].vid.pause();
-           slides[prevSlot].vid.currentTime = 0;
-       }
+      if (slides[prevSlot].vid) {
+        slides[prevSlot].vid.pause();
+        slides[prevSlot].vid.currentTime = 0;
+      }
     }, 1000);
 
     active = nextSlot;
 
     if (nextItem.type === "video") {
-        const vid = slides[nextSlot].vid;
-        vid.currentTime = 0;
-        vid.muted = false;
+      const vid = slides[nextSlot].vid;
+      vid.currentTime = 0;
+      vid.muted = false;
 
-        const onEnded = () => {
-            vid.removeEventListener("ended", onEnded);
-            scheduleNext();
-        };
-        vid.addEventListener("ended", onEnded);
+      const onEnded = () => {
+        vid.removeEventListener("ended", onEnded);
+        scheduleNext();
+      };
+      vid.addEventListener("ended", onEnded);
 
-        vid.play().catch(e => {
-            console.error("Video play failed", e);
-            timer = setTimeout(scheduleNext, interval);
-        });
-    } else {
+      vid.play().catch((e) => {
+        console.error("Video play failed", e);
         timer = setTimeout(scheduleNext, interval);
+      });
+    } else {
+      timer = setTimeout(scheduleNext, interval);
     }
   }
 
   // Start logic
   const firstItem = images[0];
   if (firstItem.type === "video") {
-      const vid = slides[0].vid;
-      vid.currentTime = 0;
-      vid.muted = false;
-      const onEnded = () => {
-          vid.removeEventListener("ended", onEnded);
-          scheduleNext();
-      };
-      vid.addEventListener("ended", onEnded);
-      vid.play().catch(e => {
-           console.error("First video play failed", e);
-           timer = setTimeout(scheduleNext, interval);
-      });
-  } else {
+    const vid = slides[0].vid;
+    vid.currentTime = 0;
+    vid.muted = false;
+    const onEnded = () => {
+      vid.removeEventListener("ended", onEnded);
+      scheduleNext();
+    };
+    vid.addEventListener("ended", onEnded);
+    vid.play().catch((e) => {
+      console.error("First video play failed", e);
       timer = setTimeout(scheduleNext, interval);
+    });
+  } else {
+    timer = setTimeout(scheduleNext, interval);
   }
 
   // cleanup hook
   container.__destroy = () => {
-      clearTimeout(timer);
-      slides.forEach(s => { if(s.vid) s.vid.pause(); });
+    clearTimeout(timer);
+    slides.forEach((s) => {
+      if (s.vid) s.vid.pause();
+    });
   };
 
   return container;
 }
 
-function buildInfoColumn(cfg, weather){
+function buildInfoColumn(cfg, weather) {
   const col = document.getElementById("infoColumn");
   col.innerHTML = "";
 
   // Weather
-  if (cfg.info_boxes?.weather_enabled){
-    const box = el("div","box");
+  if (cfg.info_boxes?.weather_enabled) {
+    const box = el("div", "box");
     const h = el("h3");
     h.textContent = `Wetter – ${cfg.info_boxes?.weather?.city || ""}`.trim();
     box.appendChild(h);
 
-    if (weather?.error){
-      const p = el("div","small");
+    if (weather?.error) {
+      const p = el("div", "small");
       p.textContent = "Wetterdaten nicht verfügbar.";
       box.appendChild(p);
-    } else if (weather?.current){
-      const temp = el("div","big");
+    } else if (weather?.current) {
+      const temp = el("div", "big");
       temp.textContent = `${Math.round(weather.current.temp)}°`;
       box.appendChild(temp);
 
-      const label = el("div","small");
+      const label = el("div", "small");
       const wx = wxCodeToLabel(weather.current.code);
       label.textContent = `${wx} · Wind ${Math.round(weather.current.wind)} km/h`;
       box.appendChild(label);
 
-      if (Array.isArray(weather.daily) && weather.daily[0]){
+      if (Array.isArray(weather.daily) && weather.daily[0]) {
         const d0 = weather.daily[0];
-        const small = el("div","small");
+        const small = el("div", "small");
         small.textContent = `Heute: ${Math.round(d0.tmin)} – ${Math.round(d0.tmax)}°`;
         box.appendChild(small);
       }
     } else {
-      const p = el("div","small");
+      const p = el("div", "small");
       p.textContent = "Lade Wetter…";
       box.appendChild(p);
     }
     col.appendChild(box);
   }
-  
-const eventBox = buildEventBox(cfg);
+
+  const eventBox = buildEventBox(cfg);
   if (eventBox) col.appendChild(eventBox);
 
   // Ampel
-  const ab = el("div","box");
+  const ab = el("div", "box");
   const ah = el("h3");
   ah.textContent = "Betreuungsampel";
   ab.appendChild(ah);
 
-  const row = el("div","ampel");
+  const row = el("div", "ampel");
 
-  const lights = el("div","lights");
-  const lG = el("div","light");
-  const lY = el("div","light");
-  const lR = el("div","light");
-  lights.append(lG,lY,lR);
+  const lights = el("div", "lights");
+  const lG = el("div", "light");
+  const lY = el("div", "light");
+  const lR = el("div", "light");
+  lights.append(lG, lY, lR);
 
   const status = (cfg.info_boxes?.ampel?.status || "green").toLowerCase();
-  if (status === "green") lG.classList.add("on","green");
-  if (status === "yellow") lY.classList.add("on","yellow");
-  if (status === "red") lR.classList.add("on","red");
+  if (status === "green") lG.classList.add("on", "green");
+  if (status === "yellow") lY.classList.add("on", "yellow");
+  if (status === "red") lR.classList.add("on", "red");
 
   row.appendChild(lights);
 
   const txt = el("div");
-  const lab = el("div","ampelLabel");
+  const lab = el("div", "ampelLabel");
   lab.textContent = cfg.info_boxes?.ampel?.label || "—";
-  const det = el("div","ampelDetail");
+  const det = el("div", "ampelDetail");
   det.innerHTML = markdownToHtml(cfg.info_boxes?.ampel?.details || "");
-  txt.append(lab,det);
+  txt.append(lab, det);
   row.appendChild(txt);
 
   ab.appendChild(row);
@@ -305,44 +312,49 @@ const eventBox = buildEventBox(cfg);
 
   // Custom boxes
   const custom = cfg.info_boxes?.custom || [];
-  for (const c of custom){
+  for (const c of custom) {
     if (!c?.enabled) continue;
-    const b = el("div","box");
-    const h = el("h3"); h.textContent = c.title || "Info";
+    const b = el("div", "box");
+    const h = el("h3");
+    h.textContent = c.title || "Info";
     b.appendChild(h);
-    const d = el("div","small");
+    const d = el("div", "small");
     d.innerHTML = markdownToHtml(c.markdown || "");
     b.appendChild(d);
     col.appendChild(b);
   }
 }
 
-function stopTicker(){
-  if (tickerAnim){
+function stopTicker() {
+  const track = document.getElementById("tickerTrack");
+  if (track) track.innerHTML = "";
+  if (tickerAnim) {
     cancelAnimationFrame(tickerAnim);
     tickerAnim = null;
   }
 }
 
-function startTicker(cfg){
+function startTicker(cfg) {
   const footer = document.getElementById("ticker");
   const enabled = !!cfg.ticker?.enabled && !!cfg.layout?.show_ticker;
   footer.classList.toggle("enabled", enabled);
-  if (!enabled){
+  if (!enabled) {
     stopTicker();
     return;
   }
 
-  const speed = clamp(parseInt(cfg.ticker?.speed ?? 70, 10), 20, 220);
+  const speed = clamp(parseInt(cfg.ticker?.speed ?? 70, 10), 20, 220); // speed is pixels per second approx, earlier it was per frame roughly
   const track = document.getElementById("tickerTrack");
   track.innerHTML = "";
-  const content = el("div","tickerContent");
+
+  const wrapper = el("div", "tickerWrapper");
+  const content = el("div", "tickerContent");
 
   const items = cfg.ticker?.items || [];
-  if (items.length === 0){
+  if (items.length === 0) {
     content.innerHTML = `<span>—</span>`;
   } else {
-    for (const it of items){
+    for (const it of items) {
       const span = document.createElement("span");
       span.textContent = it;
       content.appendChild(span);
@@ -352,38 +364,30 @@ function startTicker(cfg){
       content.appendChild(sep);
     }
   }
-  track.appendChild(content);
 
-  // Cache layout measurements outside the animation loop to prevent layout thrashing
-  // which causes forced synchronous layout 60 times a second.
-  let trackWidth = track.clientWidth;
-  let contentWidth = content.scrollWidth;
-  let x = trackWidth;
+  // To create a seamless loop, we need two identical content blocks side-by-side
+  const contentClone = content.cloneNode(true);
+  wrapper.appendChild(content);
+  wrapper.appendChild(contentClone);
+  track.appendChild(wrapper);
 
-  function step(){
-    x -= speed / 60;
-
-    if (x < -contentWidth) {
-      // Recalculate only when wrapping in case container or content changed
-      trackWidth = track.clientWidth;
-      contentWidth = content.scrollWidth;
-      x = trackWidth;
-    }
-
-    content.style.transform = `translateX(${x}px)`;
-    tickerAnim = requestAnimationFrame(step);
-  }
-  stopTicker();
-  tickerAnim = requestAnimationFrame(step);
+  // We wait a frame for the layout to measure the true width
+  requestAnimationFrame(() => {
+    const contentWidth = content.scrollWidth;
+    // duration = total distance to move / speed
+    // the distance to move is exactly one contentWidth (to loop)
+    const duration = contentWidth / speed;
+    wrapper.style.animation = `tickerMove ${duration}s linear infinite`;
+  });
 }
 
-function destroyMainPanel(panel){
+function destroyMainPanel(panel) {
   if (panel && panel.__destroy) panel.__destroy();
 }
 
-function buildEventBox(cfg){
+function buildEventBox(cfg) {
   if (!cfg.events?.enabled) return null;
-  
+
   const box = el("div", "box");
   const h = el("h3");
   h.textContent = cfg.events?.title || "Termine";
@@ -391,38 +395,46 @@ function buildEventBox(cfg){
 
   const list = el("div", "eventList");
   const items = cfg.events?.items || [];
-  
+
   // Helper: Parse DD.MM.YYYY
   const parseDate = (str) => {
     const parts = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/);
     if (!parts) return null;
     return {
-      d: parseInt(parts[1],10),
-      m: parseInt(parts[2],10)-1, // JS months are 0-11
-      y: parseInt(parts[3],10),
+      d: parseInt(parts[1], 10),
+      m: parseInt(parts[2], 10) - 1, // JS months are 0-11
+      y: parseInt(parts[3], 10),
       text: parts[4].trim(),
-      fullDate: new Date(parseInt(parts[3],10), parseInt(parts[2],10)-1, parseInt(parts[1],10))
+      fullDate: new Date(
+        parseInt(parts[3], 10),
+        parseInt(parts[2], 10) - 1,
+        parseInt(parts[1], 10),
+      ),
     };
   };
 
   // Filter & Render
   const today = new Date();
-  today.setHours(0,0,0,0); // Reset time to compare dates only
+  today.setHours(0, 0, 0, 0); // Reset time to compare dates only
 
   let count = 0;
-  for (const raw of items){
+  for (const raw of items) {
     const ev = parseDate(raw);
     if (!ev) continue; // Skip invalid format
 
     // Zeige Termin nur, wenn er heute oder in Zukunft ist
-    if (ev.fullDate >= today){
+    if (ev.fullDate >= today) {
       const row = el("div", "eventItem");
-      
+
       const dateEl = el("div", "eventDate");
       // Formatiere Datum hübsch: 15.03.
-      const dStr = String(ev.d).padStart(2,'0') + "." + String(ev.m+1).padStart(2,'0') + ".";
+      const dStr =
+        String(ev.d).padStart(2, "0") +
+        "." +
+        String(ev.m + 1).padStart(2, "0") +
+        ".";
       dateEl.textContent = dStr;
-      
+
       const textEl = el("div", "eventText");
       textEl.textContent = ev.text;
 
@@ -432,7 +444,7 @@ function buildEventBox(cfg){
     }
   }
 
-  if (count === 0){
+  if (count === 0) {
     const empty = el("div", "small");
     empty.textContent = "Aktuell keine Termine.";
     box.appendChild(empty);
@@ -443,14 +455,17 @@ function buildEventBox(cfg){
   return box;
 }
 
-function render(state){
+function render(state) {
   const cfg = state.config;
   setTheme(cfg.theme);
 
   // layout toggles
   const infoCol = document.getElementById("infoColumn");
   infoCol.style.display = cfg.layout?.show_info_column ? "flex" : "none";
-  document.querySelector(".layout").style.gridTemplateColumns = cfg.layout?.show_info_column ? "1fr 280px" : "1fr";
+  document.querySelector(".layout").style.gridTemplateColumns = cfg.layout
+    ?.show_info_column
+    ? "1fr 280px"
+    : "1fr";
 
   // main content
   const main = document.getElementById("mainPanel");
@@ -458,7 +473,7 @@ function render(state){
   main.innerHTML = "";
 
   const mode = cfg.layout?.mode || "carousel";
-  if (mode === "text"){
+  if (mode === "text") {
     main.appendChild(buildTextPanel(cfg));
   } else {
     main.appendChild(buildCarousel(cfg, state.folders, state.images));
@@ -468,34 +483,34 @@ function render(state){
   startTicker(cfg);
 }
 
-async function fetchState(){
+async function fetchState() {
   const r = await fetch("/api/state", { cache: "no-store" });
   if (!r.ok) throw new Error("state load failed");
   return await r.json();
 }
 
-function connectWs(){
-  try{
+function connectWs() {
+  try {
     const proto = location.protocol === "https:" ? "wss" : "ws";
     ws = new WebSocket(`${proto}://${location.host}/ws`);
     ws.onmessage = async (ev) => {
-      try{
+      try {
         const msg = JSON.parse(ev.data);
-        if (msg.type === "refresh"){
+        if (msg.type === "refresh") {
           state = await fetchState();
           render(state);
         }
-      }catch(_){}
+      } catch (_) {}
     };
     ws.onopen = () => {};
     ws.onclose = () => {
       // retry
       setTimeout(connectWs, 2000);
     };
-  }catch(_){}
+  } catch (_) {}
 }
 
-async function init(){
+async function init() {
   setClock();
   setInterval(setClock, 1000 * 5);
 
@@ -504,22 +519,28 @@ async function init(){
   connectWs();
 
   // polling fallback
-  const poll = clamp(parseInt(state.config?.autorefresh?.poll_fallback_sec ?? 30, 10), 5, 300);
+  const poll = clamp(
+    parseInt(state.config?.autorefresh?.poll_fallback_sec ?? 30, 10),
+    5,
+    300,
+  );
   setInterval(async () => {
-    try{
+    try {
       const s2 = await fetchState();
       // naive diff: compare config string
-      if (JSON.stringify(s2.config) !== JSON.stringify(state.config) || 
-          JSON.stringify(s2.images) !== JSON.stringify(state.images) ||
-          JSON.stringify(s2.weather) !== JSON.stringify(state.weather)) {
+      if (
+        JSON.stringify(s2.config) !== JSON.stringify(state.config) ||
+        JSON.stringify(s2.images) !== JSON.stringify(state.images) ||
+        JSON.stringify(s2.weather) !== JSON.stringify(state.weather)
+      ) {
         state = s2;
         render(state);
       }
-    }catch(_){}
+    } catch (_) {}
   }, poll * 1000);
 }
 
-init().catch(err => {
+init().catch((err) => {
   const main = document.getElementById("mainPanel");
   main.innerHTML = `<div class="kioskText"><h1>Fehler</h1><p>${String(err)}</p></div>`;
 });
