@@ -7,6 +7,29 @@ let imagesIndex = null; // Die Bilder zu den Ordnern (aus /api/state)
 
 // --- Basis Funktionen ---
 
+function showToast(message) {
+  // Remove existing toast if any
+  const existing = document.getElementById("admin-toast");
+  if (existing) existing.remove();
+
+  const el = document.createElement("div");
+  el.id = "admin-toast";
+  el.textContent = message;
+  el.style.position = "fixed";
+  el.style.bottom = "20px";
+  el.style.right = "20px";
+  el.style.background = "#333";
+  el.style.color = "#fff";
+  el.style.padding = "10px 20px";
+  el.style.borderRadius = "4px";
+  el.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
+  el.style.zIndex = "9999";
+  document.body.appendChild(el);
+  setTimeout(() => {
+      if (el.parentNode) el.remove();
+  }, 5000);
+}
+
 function setTheme(theme){
   document.body.dataset.theme = theme || "mint";
 }
@@ -233,7 +256,19 @@ function renderFolders() {
     upInput.style.display = "none";
     upInput.onchange = async () => {
       if(!upInput.files.length) return;
-      await uploadToFolder(f.id, upInput.files);
+      if (upInput.files.length > 5) {
+          showToast(`Lade ${upInput.files.length} Dateien hoch. Das kann einige Zeit dauern. Du kannst die Seite auch neu laden.`);
+      } else {
+          showToast(`Lade ${upInput.files.length} Datei(en) hoch...`);
+      }
+
+      try {
+        await uploadToFolder(f.id, upInput.files);
+        showToast("Upload abgeschlossen!");
+      } catch (err) {
+        showToast("Fehler beim Upload.");
+        console.error(err);
+      }
       upInput.value = ""; 
       await reloadAll();
     };
@@ -468,11 +503,11 @@ function bindButtons(){
       readFormToConfig();
       await apiPut("/api/config", config);
       setAuthStatus(true);
-      alert("Gespeichert. Kiosk aktualisiert sich in Kürze.");
+      showToast("Gespeichert. Kiosk aktualisiert sich in Kürze.");
     }catch(e){
       console.error(e);
       setAuthStatus(false);
-      alert("Speichern fehlgeschlagen (Passwort prüfen?)");
+      showToast("Speichern fehlgeschlagen (Passwort prüfen?)");
     }
   };
 
