@@ -28,7 +28,9 @@ CONFIG_PATH = DATA_DIR / "config.json"
 FOLDERS_PATH = DATA_DIR / "folders.json"
 INDEX_PATH = DATA_DIR / "index.json"
 
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "change-me")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+if not ADMIN_PASSWORD or ADMIN_PASSWORD == "change-me":
+    raise RuntimeError("ADMIN_PASSWORD environment variable must be set to a secure value (cannot be empty or 'change-me')")
 
 DEFAULT_CITY = os.environ.get("DEFAULT_CITY", "Eichsfeld")
 DEFAULT_LAT = float(os.environ.get("DEFAULT_LAT", "51.3"))
