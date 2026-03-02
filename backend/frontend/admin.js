@@ -7,7 +7,7 @@ let imagesIndex = null; // Die Bilder zu den Ordnern (aus /api/state)
 
 // --- Basis Funktionen ---
 
-function showToast(message) {
+function showToast(message, keepAlive = false) {
   // Remove existing toast if any
   const existing = document.getElementById("admin-toast");
   if (existing) existing.remove();
@@ -24,10 +24,21 @@ function showToast(message) {
   el.style.borderRadius = "4px";
   el.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
   el.style.zIndex = "9999";
+
+  // Make sure inner content isn't wrapping weirdly
+  el.style.display = "flex";
+  el.style.flexDirection = "column";
+  el.style.gap = "8px";
+
   document.body.appendChild(el);
-  setTimeout(() => {
-      if (el.parentNode) el.remove();
-  }, 5000);
+
+  if (!keepAlive) {
+    setTimeout(() => {
+        if (el.parentNode) el.remove();
+    }, 5000);
+  }
+
+  return el;
 }
 
 function setTheme(theme){
@@ -256,16 +267,43 @@ function renderFolders() {
     upInput.style.display = "none";
     upInput.onchange = async () => {
       if(!upInput.files.length) return;
-      if (upInput.files.length > 5) {
-          showToast(`Lade ${upInput.files.length} Dateien hoch. Das kann einige Zeit dauern. Du kannst die Seite auch neu laden.`);
-      } else {
-          showToast(`Lade ${upInput.files.length} Datei(en) hoch...`);
+
+      const fileCount = upInput.files.length;
+      let msg = `Lade ${fileCount} Datei(en) hoch...`;
+      if (fileCount > 5) {
+          msg = `Lade ${fileCount} Dateien hoch. Das kann einige Zeit dauern. Du kannst die Seite auch neu laden.`;
       }
 
+      const toastEl = showToast(msg, true);
+
+      // Create progress bar
+      const progressContainer = document.createElement("div");
+      progressContainer.style.width = "100%";
+      progressContainer.style.height = "6px";
+      progressContainer.style.background = "rgba(255,255,255,0.2)";
+      progressContainer.style.borderRadius = "3px";
+      progressContainer.style.overflow = "hidden";
+
+      const progressBar = document.createElement("div");
+      progressBar.style.width = "0%";
+      progressBar.style.height = "100%";
+      progressBar.style.background = "var(--accent, #5eead4)";
+      progressBar.style.transition = "width 0.2s ease-out";
+
+      progressContainer.appendChild(progressBar);
+      toastEl.appendChild(progressContainer);
+
       try {
-        await uploadToFolder(f.id, upInput.files);
-        showToast("Upload abgeschlossen!");
+        await uploadToFolder(f.id, upInput.files, (percent) => {
+           progressBar.style.width = `${percent}%`;
+           if (percent === 100) {
+              toastEl.firstChild.textContent = "Upload beendet. Server verarbeitet nun die Bilder...";
+           }
+        });
+        toastEl.remove();
+        showToast("Upload und Verarbeitung abgeschlossen!");
       } catch (err) {
+        toastEl.remove();
         showToast("Fehler beim Upload.");
         console.error(err);
       }
@@ -455,18 +493,36 @@ async function deleteSelected() {
   btn.disabled = false;
 }
 
-async function uploadToFolder(folderId, fileList){
-  const fd = new FormData();
-  for (const f of fileList){
-    fd.append("files", f, f.name);
-  }
-  const r = await fetch(`/api/folders/${folderId}/images`, {
-    method: "POST",
-    headers: { "X-Admin-Password": adminPw },
-    body: fd
+function uploadToFolder(folderId, fileList, onProgress) {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    for (const f of fileList){
+      fd.append("files", f, f.name);
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/folders/${folderId}/images`);
+    xhr.setRequestHeader("X-Admin-Password", adminPw);
+
+    if (onProgress && xhr.upload) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress((e.loaded / e.total) * 100);
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(JSON.parse(xhr.responseText));
+      } else {
+        reject(new Error(`Upload fehlgeschlagen: ${xhr.statusText}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Netzwerkfehler beim Upload"));
+    xhr.send(fd);
   });
-  if (!r.ok) throw new Error("Upload fehlgeschlagen");
-  return await r.json();
 }
 
 // --- App State ---
