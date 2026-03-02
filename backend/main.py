@@ -335,28 +335,30 @@ def _save_image_list_for(folder_id: str, images: List[Dict[str, Any]]) -> None:
     idx["images"][folder_id] = images
     save_index(idx)
 
-def _resize_and_store(src_path: Path, dst_path: Path) -> Tuple[int, int]:
+# ⚡ Bolt: Process image and thumbnail together to avoid redundant I/O and resizing from massive original files.
+def _process_image(src_path: Path, dst_path: Path, thumb_path: Path) -> Tuple[int, int]:
     with Image.open(src_path) as im:
         im = ImageOps.exif_transpose(im)
         im = im.convert("RGB")
         w, h = im.size
         scale = min(1.0, float(MAX_IMAGE_EDGE) / max(w, h))
         if scale < 1.0:
-            im = im.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+            main_im = im.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+        else:
+            main_im = im
         dst_path.parent.mkdir(parents=True, exist_ok=True)
-        im.save(dst_path, OUTPUT_FORMAT, quality=OUTPUT_QUALITY, method=6)
-        return im.size
+        main_im.save(dst_path, OUTPUT_FORMAT, quality=OUTPUT_QUALITY, method=6)
 
-def _make_thumb(src_path: Path, dst_path: Path) -> None:
-    with Image.open(src_path) as im:
-        im = ImageOps.exif_transpose(im)
-        im = im.convert("RGB")
-        w, h = im.size
-        scale = min(1.0, float(THUMB_EDGE) / max(w, h))
-        if scale < 1.0:
-            im = im.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
-        dst_path.parent.mkdir(parents=True, exist_ok=True)
-        im.save(dst_path, OUTPUT_FORMAT, quality=78, method=6)
+        mw, mh = main_im.size
+        thumb_scale = min(1.0, float(THUMB_EDGE) / max(mw, mh))
+        if thumb_scale < 1.0:
+            thumb_im = main_im.resize((int(mw * thumb_scale), int(mh * thumb_scale)), Image.LANCZOS)
+        else:
+            thumb_im = main_im
+        thumb_path.parent.mkdir(parents=True, exist_ok=True)
+        thumb_im.save(thumb_path, OUTPUT_FORMAT, quality=78, method=6)
+
+        return main_im.size
 
 # ---- App ----
 
@@ -560,8 +562,7 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
 
         try:
             loop = asyncio.get_running_loop()
-            w, h = await loop.run_in_executor(None, _resize_and_store, tmp_file, dst)
-            await loop.run_in_executor(None, _make_thumb, tmp_file, thumb)
+            w, h = await loop.run_in_executor(None, _process_image, tmp_file, dst, thumb)
         except Exception:
             # not an image or corrupted
             try:
