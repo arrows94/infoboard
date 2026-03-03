@@ -28,7 +28,11 @@ CONFIG_PATH = DATA_DIR / "config.json"
 FOLDERS_PATH = DATA_DIR / "folders.json"
 INDEX_PATH = DATA_DIR / "index.json"
 
+import secrets
+
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "change-me")
+if ADMIN_PASSWORD == "change-me" or not ADMIN_PASSWORD:
+    raise RuntimeError("ADMIN_PASSWORD environment variable must be set securely and cannot be 'change-me' or empty.")
 
 DEFAULT_CITY = os.environ.get("DEFAULT_CITY", "Eichsfeld")
 DEFAULT_LAT = float(os.environ.get("DEFAULT_LAT", "51.3"))
@@ -79,12 +83,12 @@ def slugify(name: str) -> str:
 
 def ensure_admin(request: Request) -> None:
     pw = request.headers.get("X-Admin-Password", "")
-    if pw != ADMIN_PASSWORD:
+    if not secrets.compare_digest(pw, ADMIN_PASSWORD):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 def ensure_admin_ws(ws: WebSocket) -> None:
     pw = ws.headers.get("x-admin-password", "")
-    if pw != ADMIN_PASSWORD:
+    if not secrets.compare_digest(pw, ADMIN_PASSWORD):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 def now_iso() -> str:
