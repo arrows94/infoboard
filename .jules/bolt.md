@@ -8,3 +8,7 @@
 ## 2025-03-02 - Image upload duplicate processing bottleneck
 **Learning:** The backend processes large uploaded images twice (once for main display `_resize_and_store`, once for thumbnail `_make_thumb`) directly from the massive original file. This is a severe codebase-specific bottleneck that duplicates heavy I/O and CPU work, especially since the thumbnail could simply be derived from the already-resized main image in memory.
 **Action:** When creating multiple derivative sizes of an image (like main and thumb), process the largest required size first, then generate smaller sizes from that in-memory result rather than reopening the original file.
+
+## 2025-03-02 - Memory Exhaustion during file upload
+**Learning:** The backend used to read entire file uploads into memory (`await up.read()`) at once, before even checking the file size limit. This causes huge memory spikes and allows for severe Memory Exhaustion DoS when multiple large files are uploaded concurrently.
+**Action:** When handling large file uploads, always stream the contents in chunks (e.g. 1MB) and stream them directly to disk, enforcing size limits during the stream rather than loading the entire payload into RAM at once.
