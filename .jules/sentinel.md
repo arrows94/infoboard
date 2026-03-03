@@ -1,0 +1,4 @@
+## 2024-03-03 - Backend Secrets Exposure
+**Vulnerability:** The backend allowed using a default "change-me" string or an empty value for the `ADMIN_PASSWORD` environment variable, leading to exposed critical endpoints if not securely configured. Additionally, timing attacks were possible during password comparison.
+**Learning:** Hardcoded, default secrets allow attackers to bypass authentication. Using simple string comparison for passwords leads to timing attacks.
+**Prevention:** Always raise an error on startup if critical secrets are using weak default values or empty strings. Use `secrets.compare_digest` for secure, constant-time string comparisons.
