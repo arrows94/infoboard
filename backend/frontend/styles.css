@@ -432,6 +432,12 @@ select.input {
   padding: 10px 12px;
   outline: none;
 }
+.input:focus-visible,
+.textarea:focus-visible,
+select.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .textarea {
   resize: vertical;
 }
@@ -443,6 +449,10 @@ select.input {
   padding: 10px 12px;
   cursor: pointer;
   font-weight: 700;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .btn.primary {
   border-color: rgba(94, 234, 212, 0.35);
@@ -490,6 +500,10 @@ select.input {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.9);
   transition: all 0.2s ease;
+}
+.toggle input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .toggle input:checked + span {
   background: rgba(94, 234, 212, 0.22);
