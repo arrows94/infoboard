@@ -515,18 +515,29 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
     added: List[Dict[str, Any]] = []
 
     for up in files:
-        # quick size guard (best-effort; content-length not always provided)
-        contents = await up.read()
-        if len(contents) > MAX_UPLOAD_MB_PER_FILE * 1024 * 1024:
-            continue
-
         orig_name = safe_filename(up.filename or "upload")
         ext = os.path.splitext(orig_name)[1].lower()
 
         tmp_path = DATA_DIR / "tmp_upload"
         tmp_path.mkdir(parents=True, exist_ok=True)
         tmp_file = tmp_path / f"{uuid.uuid4().hex}_{orig_name}"
-        tmp_file.write_bytes(contents)
+
+        # stream file to disk in 1MB chunks to prevent memory exhaustion DoS
+        limit_bytes = MAX_UPLOAD_MB_PER_FILE * 1024 * 1024
+        written = 0
+        too_large = False
+
+        with open(tmp_file, "wb") as out:
+            while chunk := await up.read(1024 * 1024):
+                written += len(chunk)
+                if written > limit_bytes:
+                    too_large = True
+                    break
+                out.write(chunk)
+
+        if too_large:
+            tmp_file.unlink(missing_ok=True)
+            continue
 
         img_id = uuid.uuid4().hex
 
