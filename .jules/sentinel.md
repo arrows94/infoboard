@@ -6,3 +6,7 @@
 **Vulnerability:** The backend loaded entire uploaded files into memory (`contents = await up.read()`) during processing before checking if they exceeded the 25MB size limit (`MAX_UPLOAD_MB_PER_FILE`). This allowed an attacker to send arbitrarily large payloads (e.g., multi-gigabyte files) that could exhaust server memory and cause a Denial of Service (DoS) crash before the size guard ever triggered.
 **Learning:** Checking size after reading an entire file into memory defeats the purpose of the size limit. `Content-Length` headers can be spoofed or missing, so the application must protect itself during the reading phase.
 **Prevention:** Stream uploaded files to disk in smaller chunks (e.g., 1MB chunks) and enforce size limits during the stream. Abort the process and cleanup partial files if the threshold is exceeded.
+## 2026-03-05 - Stored XSS in Admin Dashboard
+**Vulnerability:** User-controlled input (folder names) was rendered using `innerHTML` in `backend/frontend/admin.js`, allowing execution of malicious scripts (Stored XSS).
+**Learning:** Using `innerHTML` to render dynamic data is dangerous and can lead to XSS vulnerabilities if the data is not sanitized.
+**Prevention:** Always use safe DOM node creation techniques (like `textContent`, `appendChild`, or helper functions) to construct UI elements with user data instead of `innerHTML`.

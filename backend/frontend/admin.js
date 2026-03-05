@@ -327,7 +327,11 @@ function renderFolders() {
       "display:flex; justify-content:space-between; align-items:center;";
 
     const title = el("div");
-    title.innerHTML = `<strong>${f.name}</strong> <span class="muted">(${ims.length} Bilder)</span>`;
+    const strong = el("strong");
+    strong.textContent = f.name;
+    const span = el("span", "muted");
+    span.textContent = ` (${ims.length} Bilder)`;
+    title.append(strong, span);
 
     // Actions (Upload / Delete)
     const actions = el("div");
