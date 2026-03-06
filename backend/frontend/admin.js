@@ -569,16 +569,15 @@ async function deleteSelected() {
   btn.disabled = true;
   btn.textContent = "Lösche...";
 
-  // Bilder parallel löschen
-  await Promise.all(
-    Array.from(selectedImages).map(async (imgId) => {
-      try {
-        await apiDelete(`/api/folders/${currentFolderId}/images/${imgId}`);
-      } catch (e) {
-        console.error("Fehler beim Löschen:", e);
-      }
-    }),
-  );
+  // ⚡ Bolt: Use atomic batch delete to avoid broadcast storms and race conditions with index.json
+  try {
+    await apiPost(`/api/folders/${currentFolderId}/images/batch-delete`, {
+      image_ids: Array.from(selectedImages),
+    });
+  } catch (e) {
+    console.error("Fehler beim Löschen:", e);
+    showToast("Fehler beim Löschen der Bilder.");
+  }
 
   await reloadAll();
 
