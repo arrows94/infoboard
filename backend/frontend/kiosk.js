@@ -396,47 +396,38 @@ function buildEventBox(cfg) {
   const list = el("div", "eventList");
   const items = cfg.events?.items || [];
 
-  // Helper: Parse DD.MM.YYYY
-  const parseDate = (str) => {
-    const parts = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/);
-    if (!parts) return null;
-    return {
-      d: parseInt(parts[1], 10),
-      m: parseInt(parts[2], 10) - 1, // JS months are 0-11
-      y: parseInt(parts[3], 10),
-      text: parts[4].trim(),
-      fullDate: new Date(
-        parseInt(parts[3], 10),
-        parseInt(parts[2], 10) - 1,
-        parseInt(parts[1], 10),
-      ),
-    };
-  };
+  // ⚡ Bolt: Cache regex and avoid intermediate object allocations in loop
+  const eventDateRegex = /^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/;
 
   // Filter & Render
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+  const todayTime = today.getTime();
 
   let count = 0;
   for (const raw of items) {
-    const ev = parseDate(raw);
-    if (!ev) continue; // Skip invalid format
+    const parts = raw.match(eventDateRegex);
+    if (!parts) continue; // Skip invalid format
+
+    const d = parseInt(parts[1], 10);
+    const m = parseInt(parts[2], 10) - 1; // JS months are 0-11
+    const y = parseInt(parts[3], 10);
+    const text = parts[4].trim();
+
+    const fullDate = new Date(y, m, d);
 
     // Zeige Termin nur, wenn er heute oder in Zukunft ist
-    if (ev.fullDate >= today) {
+    if (fullDate.getTime() >= todayTime) {
       const row = el("div", "eventItem");
 
       const dateEl = el("div", "eventDate");
       // Formatiere Datum hübsch: 15.03.
       const dStr =
-        String(ev.d).padStart(2, "0") +
-        "." +
-        String(ev.m + 1).padStart(2, "0") +
-        ".";
+        String(d).padStart(2, "0") + "." + String(m + 1).padStart(2, "0") + ".";
       dateEl.textContent = dStr;
 
       const textEl = el("div", "eventText");
-      textEl.textContent = ev.text;
+      textEl.textContent = text;
 
       row.append(dateEl, textEl);
       list.appendChild(row);
