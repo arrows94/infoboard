@@ -440,6 +440,7 @@ function renderFolders() {
       } else {
         const thumb = el("img");
         thumb.src = `/media/${f.slug}/${im.thumb || im.filename}`;
+        thumb.alt = ""; // Decorative thumbnail
         thumb.style.cssText =
           "width:40px; height:40px; object-fit:cover; border-radius:4px;";
         preview.appendChild(thumb);
@@ -488,6 +489,7 @@ function openFolder(folderId, folderName) {
     } else {
       content = el("img");
       content.src = `/media/${slug}/${im.thumb || im.filename}`;
+      content.alt = ""; // Decorative thumbnail
       content.loading = "lazy";
       content.style.cssText = "height:120px; border-radius:4px; display:block;";
     }
@@ -641,11 +643,23 @@ async function reloadAll() {
 
 function bindButtons() {
   // Passwort Buttons
-  document.getElementById("btnSetPw").onclick = () => {
-    adminPw = document.getElementById("adminPw").value || "";
+  const btnSetPw = document.getElementById("btnSetPw");
+  const inputPw = document.getElementById("adminPw");
+
+  btnSetPw.onclick = () => {
+    adminPw = inputPw.value || "";
     localStorage.setItem("kita_admin_pw", adminPw);
     reloadAll().catch(() => setAuthStatus(false));
   };
+
+  // Keyboard support for Enter
+  inputPw.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      btnSetPw.click();
+    }
+  });
+
   document.getElementById("btnClearPw").onclick = () => {
     adminPw = "";
     localStorage.removeItem("kita_admin_pw");
@@ -656,8 +670,12 @@ function bindButtons() {
   // Global Actions
   document.getElementById("btnReload").onclick = () =>
     reloadAll().catch(() => setAuthStatus(false));
-  document.getElementById("btnSave").onclick = async () => {
+
+  const btnSave = document.getElementById("btnSave");
+  btnSave.onclick = async () => {
     try {
+      btnSave.disabled = true;
+      btnSave.textContent = "Speichere...";
       readFormToConfig();
       await apiPut("/api/config", config);
       setAuthStatus(true);
@@ -666,20 +684,33 @@ function bindButtons() {
       console.error(e);
       setAuthStatus(false);
       showToast("Speichern fehlgeschlagen (Passwort prüfen?)");
+    } finally {
+      btnSave.disabled = false;
+      btnSave.textContent = "Speichern";
     }
   };
 
   // Neuen Ordner erstellen
   const btnCreate = document.getElementById("btnCreateFolder");
-  if (btnCreate) {
+  const inpNewFolder = document.getElementById("newFolderName");
+
+  if (btnCreate && inpNewFolder) {
     btnCreate.onclick = async () => {
-      const inp = document.getElementById("newFolderName");
-      const name = inp.value.trim();
+      const name = inpNewFolder.value.trim();
       if (!name) return;
       await apiPost("/api/folders", { name });
-      inp.value = "";
+      inpNewFolder.value = "";
+      showToast(`Ordner "${name}" erstellt!`);
       await reloadAll();
     };
+
+    // Keyboard support for Enter
+    inpNewFolder.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        btnCreate.click();
+      }
+    });
   }
 }
 
