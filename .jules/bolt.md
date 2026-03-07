@@ -12,3 +12,7 @@
 ## 2025-03-05 - Batch File-Based I/O Modifying Operations
 **Learning:** In a single-file JSON backend (like `index.json`), state-modifying array operations using `Promise.all()` (e.g., deleting multiple images concurrently) trigger race conditions leading to data loss, I/O bottlenecks, and WebSocket broadcast storms.
 **Action:** Always implement a single atomic bulk/batch operation endpoint for modifying array structures or deleting multiple resources in file-backed architectures.
+
+## 2025-03-05 - Event Date Parsing in Render Loop
+**Learning:** Recompiling a regular expression and allocating temporary objects inside a render loop (like `buildEventBox` iterating over many event strings) adds unnecessary CPU overhead and memory churn.
+**Action:** When parsing data in a loop, extract the Regex out of the loop and extract the needed data directly into primitive variables instead of creating throwaway intermediate objects.
