@@ -13,3 +13,10 @@
 ## 2025-03-03 - Custom Toggle Checkbox 'for' Label Association
 **Learning:** The custom toggle checkbox pattern (`<label class="toggle"><input type="checkbox" /><span></span></label>`) was missing `for` associations with its adjacent descriptive `<label class="label">` elements. Without the `for` attribute, screen readers fail to associate the label text with the checkbox, and clicking the descriptive label does not toggle the checkbox, severely reducing the effective click target area for mouse users.
 **Action:** Always ensure descriptive labels use the `for` attribute pointing to the ID of the custom input element, especially for custom UI patterns like CSS-only toggles where the semantic input is hidden.
+## 2025-02-13 - Implicit Submission on Standalone Inputs
+**Learning:** Standalone `<input>` elements (not wrapped in `<form>`) break the browser's implicit submission behavior (pressing the `Enter` key). This creates a severe barrier for keyboard users who expect to submit simple single-input fields intuitively.
+**Action:** Always wrap inputs in a `<form>` element, or manually implement `keydown` listeners on the `Enter` key if native forms cannot be used for architectural reasons.
+
+## 2025-02-13 - Decorative Image Noise
+**Learning:** In dynamically generated UIs (like vanilla JS apps), dynamically created `<img>` tags without an `alt` attribute will cause screen readers to announce the raw source URL or filename (e.g., "1234abcd.webp"), creating severe cognitive noise for users.
+**Action:** Always default `alt=""` on dynamically created, decorative `<img>` tags (like thumbnails or background-style carousel images) unless explicit descriptive text is available and needed.

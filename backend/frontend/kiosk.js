@@ -106,6 +106,7 @@ function buildCarousel(cfg, folders, imagesIndex) {
     } else {
       const img = document.createElement("img");
       img.src = item.url;
+      img.alt = ""; // Decorative carousel image
       img.style.width = "100%";
       img.style.height = "100%";
       img.style.objectFit = "cover";
@@ -121,6 +122,7 @@ function buildCarousel(cfg, folders, imagesIndex) {
     const s = el("div", "slide");
 
     const img = document.createElement("img");
+    img.alt = ""; // Decorative carousel image
     img.loading = "eager";
     img.decoding = "async";
 
