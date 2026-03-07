@@ -327,7 +327,13 @@ function renderFolders() {
       "display:flex; justify-content:space-between; align-items:center;";
 
     const title = el("div");
-    title.innerHTML = `<strong>${f.name}</strong> <span class="muted">(${ims.length} Bilder)</span>`;
+    // 🛡️ Sentinel: Safe DOM construction to prevent Stored XSS via folder names
+    const strongName = document.createElement("strong");
+    strongName.textContent = f.name;
+    const spanMuted = el("span", "muted");
+    spanMuted.textContent = ` (${ims.length} Bilder)`;
+    title.appendChild(strongName);
+    title.appendChild(spanMuted);
 
     // Actions (Upload / Delete)
     const actions = el("div");
