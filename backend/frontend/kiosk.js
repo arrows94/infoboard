@@ -47,9 +47,16 @@ function pickCarouselImages(cfg, folders, imagesIndex) {
   } else if (Array.isArray(cfg.carousel?.folders)) {
     folderIds = cfg.carousel.folders;
   }
+
+  // ⚡ Bolt: Cache folders in a Map to replace O(N^2) search with O(N) lookup
+  const folderMap = new Map();
+  for (let i = 0; i < folders.length; i++) {
+    folderMap.set(folders[i].id, folders[i]);
+  }
+
   const list = [];
   for (const fid of folderIds) {
-    const folder = folders.find((f) => f.id === fid);
+    const folder = folderMap.get(fid);
     if (!folder) continue;
     const ims = imagesIndex?.[fid] || [];
     for (const im of ims) {
