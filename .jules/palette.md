@@ -16,3 +16,10 @@
 ## 2025-03-06 - Custom Toggle Checkbox Keyboard Accessibility
 **Learning:** Using `display: none` on native inputs for custom toggles (like CSS-only toggle switches) completely removes them from the tab order and screen reader flow, making them completely inaccessible to keyboard users and assistive technologies.
 **Action:** Always visually hide the native input using `opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; margin: 0; z-index: 1;` instead of `display: none`. This keeps the element focusable, interactive via keyboard, and allows the adjacent custom UI element to receive `:focus-visible` styles through adjacent sibling combinators (e.g. `input:focus-visible + span`).
+## 2025-02-13 - Implicit Submission on Standalone Inputs
+**Learning:** Standalone `<input>` elements (not wrapped in `<form>`) break the browser's implicit submission behavior (pressing the `Enter` key). This creates a severe barrier for keyboard users who expect to submit simple single-input fields intuitively.
+**Action:** Always wrap inputs in a `<form>` element, or manually implement `keydown` listeners on the `Enter` key if native forms cannot be used for architectural reasons.
+
+## 2025-02-13 - Decorative Image Noise
+**Learning:** In dynamically generated UIs (like vanilla JS apps), dynamically created `<img>` tags without an `alt` attribute will cause screen readers to announce the raw source URL or filename (e.g., "1234abcd.webp"), creating severe cognitive noise for users.
+**Action:** Always default `alt=""` on dynamically created, decorative `<img>` tags (like thumbnails or background-style carousel images) unless explicit descriptive text is available and needed.

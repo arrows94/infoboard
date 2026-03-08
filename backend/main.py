@@ -608,6 +608,41 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
     await hub.broadcast({"type": "refresh", "reason": "images"})
     return {"ok": True, "added": added}
 
+@app.post("/api/folders/{folder_id}/images/batch-delete")
+async def batch_delete_images(folder_id: str, request: Request) -> Dict[str, Any]:
+    ensure_admin(request)
+    data = await request.json()
+    image_ids = set(data.get("image_ids", []))
+    if not image_ids:
+        return {"ok": True, "deleted": 0}
+
+    folder = _find_folder(folder_id)
+    folder_dir = _folder_path(folder)
+
+    images = _image_list_for(folder_id)
+    keep: List[Dict[str, Any]] = []
+    removed_count = 0
+
+    for im in images:
+        if im.get("id") in image_ids:
+            # delete files
+            try:
+                (folder_dir / im["filename"]).unlink(missing_ok=True)
+                thumb = im.get("thumb")
+                if thumb:
+                    (folder_dir / thumb).unlink(missing_ok=True)
+            except Exception:
+                pass
+            removed_count += 1
+        else:
+            keep.append(im)
+
+    if removed_count > 0:
+        _save_image_list_for(folder_id, keep)
+        await hub.broadcast({"type": "refresh", "reason": "images"})
+
+    return {"ok": True, "deleted": removed_count}
+
 @app.delete("/api/folders/{folder_id}/images/{image_id}")
 async def delete_image(folder_id: str, image_id: str, request: Request) -> Dict[str, Any]:
     ensure_admin(request)
