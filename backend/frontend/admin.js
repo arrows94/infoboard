@@ -315,10 +315,22 @@ function renderFolders() {
     card.style.cssText =
       "cursor:pointer; border:1px solid #444; border-radius:8px; padding:10px; margin-bottom:10px; background:#2a2a2a;";
 
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `Ordner ${f.name} öffnen`);
+
     card.onclick = (e) => {
       // Klick auf Buttons ignorieren
       if (["BUTTON", "INPUT"].includes(e.target.tagName)) return;
       openFolder(f.id, f.name);
+    };
+
+    card.onkeydown = (e) => {
+      if (e.target !== card) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openFolder(f.id, f.name);
+      }
     };
 
     // Header Zeile
@@ -480,9 +492,20 @@ function openFolder(folderId, folderName) {
     const wrap = el("div", "img-wrap");
     wrap.style.cssText =
       "position:relative; cursor:pointer; display:inline-block; margin:5px;";
+    wrap.setAttribute("role", "checkbox");
+    wrap.setAttribute("aria-checked", selectedImages.has(im.id).toString());
+    wrap.setAttribute("tabindex", "0");
+    wrap.setAttribute("aria-label", `Bild ${im.filename} auswählen`);
 
     wrap.onclick = (e) => {
       if (e.target.type !== "checkbox") toggleSelection(im.id);
+    };
+
+    wrap.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleSelection(im.id);
+      }
     };
 
     let content;
@@ -502,10 +525,11 @@ function openFolder(folderId, folderName) {
 
     const check = el("input");
     check.type = "checkbox";
+    check.setAttribute("aria-hidden", "true");
+    check.setAttribute("tabindex", "-1");
     check.style.cssText =
-      "position:absolute; top:5px; left:5px; transform:scale(1.3); cursor:pointer;";
+      "position:absolute; top:5px; left:5px; transform:scale(1.3); pointer-events:none;";
     check.checked = selectedImages.has(im.id);
-    check.onchange = () => toggleSelection(im.id);
 
     // Dataset ID speichern für schnelles UI Update
     wrap.dataset.imgid = im.id;
@@ -532,6 +556,7 @@ function toggleSelection(id) {
   const wraps = document.querySelectorAll("#detailGrid .img-wrap");
   wraps.forEach((w) => {
     if (w.dataset.imgid == id) {
+      w.setAttribute("aria-checked", selectedImages.has(id).toString());
       const cb = w.querySelector("input");
       cb.checked = selectedImages.has(id);
       w.style.outline = selectedImages.has(id)
@@ -554,6 +579,7 @@ function toggleSelectAll(checkbox) {
   // Alle Checkboxen updaten
   const wraps = document.querySelectorAll("#detailGrid .img-wrap");
   wraps.forEach((w) => {
+    w.setAttribute("aria-checked", isChecked.toString());
     w.querySelector("input").checked = isChecked;
     w.style.outline = isChecked ? "3px solid var(--accent)" : "none";
   });
