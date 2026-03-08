@@ -10,3 +10,7 @@
 **Vulnerability:** User-controlled folder names were being directly interpolated into an HTML string and rendered using `innerHTML` in `admin.js`. If an attacker or a malicious admin created a folder with a name containing `<script>` or other HTML tags, it would be executed when rendering the folder list.
 **Learning:** Using template literals with `innerHTML` is dangerous when dealing with user input, even in admin panels where users are theoretically trusted. It leads to Stored XSS.
 **Prevention:** Always use safe DOM element creation methods like `document.createElement`, `textContent`, and `appendChild` instead of `innerHTML` when rendering user-controlled data. Alternatively, use existing helper functions like `el` and set the `textContent` property.
+## 2024-03-05 - XSS Vulnerability in Error Handling (kiosk.js)
+**Vulnerability:** The error handler in `backend/frontend/kiosk.js` rendered error messages directly using `innerHTML` with string interpolation (`${String(err)}`). This created a Cross-Site Scripting (XSS) vulnerability if the error contained unescaped HTML content (for example, from a maliciously crafted API response).
+**Learning:** Even error messages should not be trusted and directly interpolated into HTML using `innerHTML`.
+**Prevention:** Always use secure methods like setting `textContent` when displaying dynamic text inside elements to prevent DOM-based XSS attacks.
