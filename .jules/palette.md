@@ -1,25 +1,3 @@
-## 2023-10-24 - Layout Thrashing in requestAnimationFrame
-**Learning:** Reading layout properties like `scrollWidth` and `clientWidth` inside a `requestAnimationFrame` loop forces the browser to evaluate layout 60 times per second, even if `transform` is the only property being mutated.
-**Action:** Always cache DOM layout measurements (like widths/heights) outside of high-frequency animation loops and recalculate them only when necessary (e.g., on loop wrap or resize event) to avoid unnecessary DOM reads.
-
-## 2024-03-24 - Live Ticker Optimization
-**Learning:** Moving the continuous JavaScript-based `requestAnimationFrame` ticker animation to pure CSS `@keyframes` on the compositor thread significantly reduces CPU usage and provides a noticeably smoother scrolling experience without layout thrashing.
-**Action:** Always prefer CSS animations for simple, continuous translation (`transform: translateX(...)`) effects instead of manual JS frame loops. We replaced the manual loop with a cloned duplicate node mechanism inside a wrapper that animates cleanly to `-50%`.
-
-## 2025-03-02 - Image upload duplicate processing bottleneck
-**Learning:** The backend processes large uploaded images twice (once for main display `_resize_and_store`, once for thumbnail `_make_thumb`) directly from the massive original file. This is a severe codebase-specific bottleneck that duplicates heavy I/O and CPU work, especially since the thumbnail could simply be derived from the already-resized main image in memory.
-**Action:** When creating multiple derivative sizes of an image (like main and thumb), process the largest required size first, then generate smaller sizes from that in-memory result rather than reopening the original file.
-
-## 2025-03-03 - Custom Toggle Checkbox 'for' Label Association
-**Learning:** The custom toggle checkbox pattern (`<label class="toggle"><input type="checkbox" /><span></span></label>`) was missing `for` associations with its adjacent descriptive `<label class="label">` elements. Without the `for` attribute, screen readers fail to associate the label text with the checkbox, and clicking the descriptive label does not toggle the checkbox, severely reducing the effective click target area for mouse users.
-**Action:** Always ensure descriptive labels use the `for` attribute pointing to the ID of the custom input element, especially for custom UI patterns like CSS-only toggles where the semantic input is hidden.
-## 2025-03-06 - Custom Toggle Checkbox Keyboard Accessibility
-**Learning:** Using `display: none` on native inputs for custom toggles (like CSS-only toggle switches) completely removes them from the tab order and screen reader flow, making them completely inaccessible to keyboard users and assistive technologies.
-**Action:** Always visually hide the native input using `opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; margin: 0; z-index: 1;` instead of `display: none`. This keeps the element focusable, interactive via keyboard, and allows the adjacent custom UI element to receive `:focus-visible` styles through adjacent sibling combinators (e.g. `input:focus-visible + span`).
-## 2025-02-13 - Implicit Submission on Standalone Inputs
-**Learning:** Standalone `<input>` elements (not wrapped in `<form>`) break the browser's implicit submission behavior (pressing the `Enter` key). This creates a severe barrier for keyboard users who expect to submit simple single-input fields intuitively.
-**Action:** Always wrap inputs in a `<form>` element, or manually implement `keydown` listeners on the `Enter` key if native forms cannot be used for architectural reasons.
-
-## 2025-02-13 - Decorative Image Noise
-**Learning:** In dynamically generated UIs (like vanilla JS apps), dynamically created `<img>` tags without an `alt` attribute will cause screen readers to announce the raw source URL or filename (e.g., "1234abcd.webp"), creating severe cognitive noise for users.
-**Action:** Always default `alt=""` on dynamically created, decorative `<img>` tags (like thumbnails or background-style carousel images) unless explicit descriptive text is available and needed.
+## 2024-03-08 - Added accessibility attributes to clickable DIVs in Admin UI
+**Learning:** Found that custom clickable `div` components (`.folder-card`, `.img-wrap`) in the vanilla JS admin interface lacked keyboard accessibility and screen reader support, even though they had `onclick` handlers.
+**Action:** When transforming non-interactive elements (like `<div>` containers) into clickable components, ensure full accessibility by adding an appropriate `role` (e.g., `button`, `checkbox`), `tabindex="0"`, `aria-label` or `aria-checked`, a `keydown` event listener for the Enter and Space keys, and `:focus-visible` styles.

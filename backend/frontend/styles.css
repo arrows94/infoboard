@@ -715,3 +715,12 @@ select.input:focus-visible {
   padding: 4px 10px;
   font-size: 0.9em;
 }
+
+.img-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.folder-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
