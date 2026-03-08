@@ -306,6 +306,8 @@ function renderFolders() {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
+
   for (const f of fList) {
     const ims = imagesIndex?.[f.id] || [];
 
@@ -453,8 +455,10 @@ function renderFolders() {
       }
     }
     card.appendChild(preview);
-    container.appendChild(card);
+    fragment.appendChild(card);
   }
+
+  container.appendChild(fragment);
 }
 
 function openFolder(folderId, folderName) {
@@ -475,6 +479,8 @@ function openFolder(folderId, folderName) {
 
   const grid = document.getElementById("detailGrid");
   grid.innerHTML = "";
+
+  const fragment = document.createDocumentFragment();
 
   for (const im of currentFolderImages) {
     const wrap = el("div", "img-wrap");
@@ -512,8 +518,10 @@ function openFolder(folderId, folderName) {
 
     wrap.appendChild(content);
     wrap.appendChild(check);
-    grid.appendChild(wrap);
+    fragment.appendChild(wrap);
   }
+
+  grid.appendChild(fragment);
 }
 
 function closeFolder() {
@@ -529,16 +537,16 @@ function toggleSelection(id) {
   }
 
   // UI Rahmen aktualisieren
-  const wraps = document.querySelectorAll("#detailGrid .img-wrap");
-  wraps.forEach((w) => {
-    if (w.dataset.imgid == id) {
-      const cb = w.querySelector("input");
-      cb.checked = selectedImages.has(id);
-      w.style.outline = selectedImages.has(id)
-        ? "3px solid var(--accent)"
-        : "none";
-    }
-  });
+  const wrap = document.querySelector(
+    `#detailGrid .img-wrap[data-imgid="${id}"]`,
+  );
+  if (wrap) {
+    const cb = wrap.querySelector("input");
+    cb.checked = selectedImages.has(id);
+    wrap.style.outline = selectedImages.has(id)
+      ? "3px solid var(--accent)"
+      : "none";
+  }
 
   updateDeleteButton();
 }
