@@ -315,10 +315,24 @@ function renderFolders() {
     card.style.cssText =
       "cursor:pointer; border:1px solid #444; border-radius:8px; padding:10px; margin-bottom:10px; background:#2a2a2a;";
 
+    // Accessibility for custom button
+    card.role = "button";
+    card.tabIndex = 0;
+    card.setAttribute("aria-label", `Ordner ${f.name} öffnen`);
+
     card.onclick = (e) => {
       // Klick auf Buttons ignorieren
       if (["BUTTON", "INPUT"].includes(e.target.tagName)) return;
       openFolder(f.id, f.name);
+    };
+
+    card.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        // Tastendruck auf Buttons ignorieren
+        if (["BUTTON", "INPUT"].includes(e.target.tagName)) return;
+        e.preventDefault();
+        openFolder(f.id, f.name);
+      }
     };
 
     // Header Zeile
