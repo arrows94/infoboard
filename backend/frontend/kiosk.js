@@ -542,5 +542,13 @@ async function init() {
 
 init().catch((err) => {
   const main = document.getElementById("mainPanel");
-  main.innerHTML = `<div class="kioskText"><h1>Fehler</h1><p>${String(err)}</p></div>`;
+  main.innerHTML = "";
+  const wrap = el("div", "kioskText");
+  const h1 = el("h1");
+  h1.textContent = "Fehler";
+  const p = el("p");
+  p.textContent = String(err);
+  wrap.appendChild(h1);
+  wrap.appendChild(p);
+  main.appendChild(wrap);
 });
