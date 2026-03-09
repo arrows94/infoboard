@@ -158,12 +158,15 @@ function bindConfigToForm() {
   const sel = document.getElementById("carouselFolders");
   sel.innerHTML = "";
   if (folders && folders.folders) {
+    // ⚡ Bolt: Use DocumentFragment to batch DOM insertions and prevent excessive reflows
+    const frag = document.createDocumentFragment();
     for (const f of folders.folders) {
       const opt = document.createElement("option");
       opt.value = f.id;
       opt.textContent = f.name;
-      sel.appendChild(opt);
+      frag.appendChild(opt);
     }
+    sel.appendChild(frag);
   }
 
   if (config.carousel?.folders === "all") {
@@ -306,6 +309,8 @@ function renderFolders() {
     return;
   }
 
+  // ⚡ Bolt: Use DocumentFragment to batch DOM insertions and prevent excessive reflows
+  const frag = document.createDocumentFragment();
   for (const f of fList) {
     const ims = imagesIndex?.[f.id] || [];
 
@@ -453,8 +458,9 @@ function renderFolders() {
       }
     }
     card.appendChild(preview);
-    container.appendChild(card);
+    frag.appendChild(card);
   }
+  container.appendChild(frag);
 }
 
 function openFolder(folderId, folderName) {
@@ -476,6 +482,8 @@ function openFolder(folderId, folderName) {
   const grid = document.getElementById("detailGrid");
   grid.innerHTML = "";
 
+  // ⚡ Bolt: Use DocumentFragment to batch DOM insertions and prevent excessive reflows
+  const frag = document.createDocumentFragment();
   for (const im of currentFolderImages) {
     const wrap = el("div", "img-wrap");
     wrap.style.cssText =
@@ -512,8 +520,9 @@ function openFolder(folderId, folderName) {
 
     wrap.appendChild(content);
     wrap.appendChild(check);
-    grid.appendChild(wrap);
+    frag.appendChild(wrap);
   }
+  grid.appendChild(frag);
 }
 
 function closeFolder() {

@@ -249,6 +249,9 @@ function buildInfoColumn(cfg, weather) {
   const col = document.getElementById("infoColumn");
   col.innerHTML = "";
 
+  // ⚡ Bolt: Use DocumentFragment to batch DOM insertions and prevent excessive reflows
+  const frag = document.createDocumentFragment();
+
   // Weather
   if (cfg.info_boxes?.weather_enabled) {
     const box = el("div", "box");
@@ -281,11 +284,11 @@ function buildInfoColumn(cfg, weather) {
       p.textContent = "Lade Wetter…";
       box.appendChild(p);
     }
-    col.appendChild(box);
+    frag.appendChild(box);
   }
 
   const eventBox = buildEventBox(cfg);
-  if (eventBox) col.appendChild(eventBox);
+  if (eventBox) frag.appendChild(eventBox);
 
   // Ampel
   const ab = el("div", "box");
@@ -317,7 +320,7 @@ function buildInfoColumn(cfg, weather) {
   row.appendChild(txt);
 
   ab.appendChild(row);
-  col.appendChild(ab);
+  frag.appendChild(ab);
 
   // Custom boxes
   const custom = cfg.info_boxes?.custom || [];
@@ -330,8 +333,10 @@ function buildInfoColumn(cfg, weather) {
     const d = el("div", "small");
     d.innerHTML = markdownToHtml(c.markdown || "");
     b.appendChild(d);
-    col.appendChild(b);
+    frag.appendChild(b);
   }
+
+  col.appendChild(frag);
 }
 
 function stopTicker() {
@@ -405,6 +410,9 @@ function buildEventBox(cfg) {
   const list = el("div", "eventList");
   const items = cfg.events?.items || [];
 
+  // ⚡ Bolt: Use DocumentFragment to batch DOM insertions and prevent excessive reflows
+  const frag = document.createDocumentFragment();
+
   // ⚡ Bolt: Cache regex and avoid intermediate object allocations in loop
   const eventDateRegex = /^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/;
 
@@ -439,10 +447,12 @@ function buildEventBox(cfg) {
       textEl.textContent = text;
 
       row.append(dateEl, textEl);
-      list.appendChild(row);
+      frag.appendChild(row);
       count++;
     }
   }
+
+  list.appendChild(frag);
 
   if (count === 0) {
     const empty = el("div", "small");
