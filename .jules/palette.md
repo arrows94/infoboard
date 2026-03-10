@@ -23,3 +23,7 @@
 ## 2025-02-13 - Decorative Image Noise
 **Learning:** In dynamically generated UIs (like vanilla JS apps), dynamically created `<img>` tags without an `alt` attribute will cause screen readers to announce the raw source URL or filename (e.g., "1234abcd.webp"), creating severe cognitive noise for users.
 **Action:** Always default `alt=""` on dynamically created, decorative `<img>` tags (like thumbnails or background-style carousel images) unless explicit descriptive text is available and needed.
+
+## 2026-03-10 - Adding accessibility to custom interactive containers
+**Learning:** In vanilla JavaScript without native form or UI elements (like `<button>`), developers often attach click handlers directly to parent `<div>` containers. This completely breaks keyboard accessibility and screen readers, as the elements cannot receive focus or declare their interactive nature. Additionally, if the parent element responds to key events (like `Enter`), it can incorrectly trigger actions when a child interactive element (like a text input) actually caused the event.
+**Action:** Always wrap interactive actions in an explicit `role="button"`, assign `tabindex="0"`, provide an informative `aria-label`, and attach a `keydown` handler explicitly checking for `Enter` and `Space`. Critically, within the `keydown` and `click` handlers, check the event target (`e.target.tagName`) to prevent triggering parent actions from bubbling child events. Apply `:focus-visible` styling to clearly indicate focus without impacting mouse users.
