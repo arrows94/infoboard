@@ -538,16 +538,17 @@ function toggleSelection(id) {
   }
 
   // UI Rahmen aktualisieren
-  const wraps = document.querySelectorAll("#detailGrid .img-wrap");
-  wraps.forEach((w) => {
-    if (w.dataset.imgid == id) {
-      const cb = w.querySelector("input");
-      cb.checked = selectedImages.has(id);
-      w.style.outline = selectedImages.has(id)
-        ? "3px solid var(--accent)"
-        : "none";
-    }
-  });
+  // ⚡ Bolt: Prefer O(1) targeted DOM query to update a single element instead of O(N) querySelectorAll + loop
+  const wrap = document.querySelector(
+    `#detailGrid .img-wrap[data-imgid="${id}"]`,
+  );
+  if (wrap) {
+    const cb = wrap.querySelector("input");
+    cb.checked = selectedImages.has(id);
+    wrap.style.outline = selectedImages.has(id)
+      ? "3px solid var(--accent)"
+      : "none";
+  }
 
   updateDeleteButton();
 }
