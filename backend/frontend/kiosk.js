@@ -471,11 +471,46 @@ function render(state) {
 
   // layout toggles
   const infoCol = document.getElementById("infoColumn");
+  const layout = document.querySelector(".layout");
+
   infoCol.style.display = cfg.layout?.show_info_column ? "flex" : "none";
-  document.querySelector(".layout").style.gridTemplateColumns = cfg.layout
-    ?.show_info_column
-    ? "1fr 280px"
-    : "1fr";
+
+  // Apply aspect ratio
+  const aspectRatio = cfg.layout?.image_aspect_ratio || "auto";
+  const mainPanel = document.getElementById("mainPanel");
+
+  if (aspectRatio === "16:9") {
+    mainPanel.style.aspectRatio = "16 / 9";
+  } else if (aspectRatio === "4:3") {
+    mainPanel.style.aspectRatio = "4 / 3";
+  } else {
+    mainPanel.style.aspectRatio = "auto";
+  }
+
+  // Update grid layout depending on the ratio and info column status
+  if (cfg.layout?.show_info_column) {
+    if (aspectRatio === "auto") {
+      layout.style.gridTemplateColumns = "1fr 280px";
+    } else {
+      // If a fixed aspect ratio is used, we let the main panel dictate its width via aspect-ratio + height (100%),
+      // and let the info column fill the remaining 1fr space. Ensure min width of 280px for info.
+      layout.style.gridTemplateColumns = "auto minmax(280px, 1fr)";
+    }
+  } else {
+    if (aspectRatio === "auto") {
+      layout.style.gridTemplateColumns = "1fr";
+      mainPanel.style.margin = "0";
+    } else {
+      layout.style.gridTemplateColumns = "auto";
+      // Center the panel if it has a specific ratio but no side panel
+      layout.style.justifyContent = "center";
+    }
+  }
+
+  // Handle justifyContent reset when info column is shown
+  if (cfg.layout?.show_info_column) {
+    layout.style.justifyContent = "initial";
+  }
 
   // main content
   const main = document.getElementById("mainPanel");
