@@ -103,6 +103,7 @@ function bindConfigToForm() {
   setTheme(config.theme);
   document.getElementById("theme").value = config.theme || "mint";
   document.getElementById("mode").value = config.layout?.mode || "carousel";
+  document.getElementById("aspectRatio").value = config.layout?.image_aspect_ratio || "auto";
   document.getElementById("showInfo").checked =
     !!config.layout?.show_info_column;
   document.getElementById("showTicker").checked = !!config.layout?.show_ticker;
@@ -181,6 +182,7 @@ function bindConfigToForm() {
 function readFormToConfig() {
   const theme = document.getElementById("theme").value;
   const mode = document.getElementById("mode").value;
+  const aspectRatio = document.getElementById("aspectRatio").value;
   const showInfo = document.getElementById("showInfo").checked;
   const showTicker = document.getElementById("showTicker").checked;
 
@@ -241,6 +243,7 @@ function readFormToConfig() {
   config.layout = {
     ...config.layout,
     mode,
+    image_aspect_ratio: aspectRatio,
     show_info_column: showInfo,
     show_ticker: showTicker,
   };
