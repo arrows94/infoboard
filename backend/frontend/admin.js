@@ -12,33 +12,35 @@ function showToast(message, keepAlive = false) {
   const existing = document.getElementById("admin-toast");
   if (existing) existing.remove();
 
-  const el = document.createElement("div");
-  el.id = "admin-toast";
-  el.textContent = message;
-  el.style.position = "fixed";
-  el.style.bottom = "20px";
-  el.style.right = "20px";
-  el.style.background = "#333";
-  el.style.color = "#fff";
-  el.style.padding = "10px 20px";
-  el.style.borderRadius = "4px";
-  el.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
-  el.style.zIndex = "9999";
+  const toastEl = document.createElement("div");
+  toastEl.id = "admin-toast";
+  toastEl.textContent = message;
+  toastEl.setAttribute("role", "status");
+  toastEl.setAttribute("aria-live", "polite");
+  toastEl.style.position = "fixed";
+  toastEl.style.bottom = "20px";
+  toastEl.style.right = "20px";
+  toastEl.style.background = "#333";
+  toastEl.style.color = "#fff";
+  toastEl.style.padding = "10px 20px";
+  toastEl.style.borderRadius = "4px";
+  toastEl.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)";
+  toastEl.style.zIndex = "9999";
 
   // Make sure inner content isn't wrapping weirdly
-  el.style.display = "flex";
-  el.style.flexDirection = "column";
-  el.style.gap = "8px";
+  toastEl.style.display = "flex";
+  toastEl.style.flexDirection = "column";
+  toastEl.style.gap = "8px";
 
-  document.body.appendChild(el);
+  document.body.appendChild(toastEl);
 
   if (!keepAlive) {
     setTimeout(() => {
-      if (el.parentNode) el.remove();
+      if (toastEl.parentNode) toastEl.remove();
     }, 5000);
   }
 
-  return el;
+  return toastEl;
 }
 
 function setTheme(theme) {
@@ -103,7 +105,8 @@ function bindConfigToForm() {
   setTheme(config.theme);
   document.getElementById("theme").value = config.theme || "mint";
   document.getElementById("mode").value = config.layout?.mode || "carousel";
-  document.getElementById("aspectRatio").value = config.layout?.image_aspect_ratio || "auto";
+  document.getElementById("aspectRatio").value =
+    config.layout?.image_aspect_ratio || "auto";
   document.getElementById("showInfo").checked =
     !!config.layout?.show_info_column;
   document.getElementById("showTicker").checked = !!config.layout?.show_ticker;
@@ -677,10 +680,19 @@ function bindButtons() {
   const btnSetPw = document.getElementById("btnSetPw");
   const inputPw = document.getElementById("adminPw");
 
-  btnSetPw.onclick = () => {
-    adminPw = inputPw.value || "";
-    localStorage.setItem("kita_admin_pw", adminPw);
-    reloadAll().catch(() => setAuthStatus(false));
+  btnSetPw.onclick = async () => {
+    try {
+      btnSetPw.disabled = true;
+      btnSetPw.textContent = "Prüfe...";
+      adminPw = inputPw.value || "";
+      localStorage.setItem("kita_admin_pw", adminPw);
+      await reloadAll();
+    } catch (e) {
+      setAuthStatus(false);
+    } finally {
+      btnSetPw.disabled = false;
+      btnSetPw.textContent = "Setzen";
+    }
   };
 
   // Keyboard support for Enter
@@ -699,8 +711,19 @@ function bindButtons() {
   };
 
   // Global Actions
-  document.getElementById("btnReload").onclick = () =>
-    reloadAll().catch(() => setAuthStatus(false));
+  const btnReload = document.getElementById("btnReload");
+  btnReload.onclick = async () => {
+    try {
+      btnReload.disabled = true;
+      btnReload.textContent = "Lade...";
+      await reloadAll();
+    } catch (e) {
+      setAuthStatus(false);
+    } finally {
+      btnReload.disabled = false;
+      btnReload.textContent = "Neu laden";
+    }
+  };
 
   const btnSave = document.getElementById("btnSave");
   btnSave.onclick = async () => {
@@ -729,10 +752,19 @@ function bindButtons() {
     btnCreate.onclick = async () => {
       const name = inpNewFolder.value.trim();
       if (!name) return;
-      await apiPost("/api/folders", { name });
-      inpNewFolder.value = "";
-      showToast(`Ordner "${name}" erstellt!`);
-      await reloadAll();
+      try {
+        btnCreate.disabled = true;
+        btnCreate.textContent = "Erstelle...";
+        await apiPost("/api/folders", { name });
+        inpNewFolder.value = "";
+        showToast(`Ordner "${name}" erstellt!`);
+        await reloadAll();
+      } catch (e) {
+        showToast("Fehler beim Erstellen des Ordners.");
+      } finally {
+        btnCreate.disabled = false;
+        btnCreate.textContent = "Ordner anlegen";
+      }
     };
 
     // Keyboard support for Enter
