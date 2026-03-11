@@ -319,6 +319,10 @@ function renderFolders() {
 
     // Karte
     const card = el("div", "folder-card");
+    // Accessibility attributes
+    card.setAttribute("role", "button");
+    card.tabIndex = 0;
+    card.setAttribute("aria-label", `Ordner ${f.name} öffnen`);
     // Inline Styles für Layout (damit es ohne CSS-Update funktioniert)
     card.style.cssText =
       "cursor:pointer; border:1px solid #444; border-radius:8px; padding:10px; margin-bottom:10px; background:#2a2a2a;";
@@ -327,6 +331,14 @@ function renderFolders() {
       // Klick auf Buttons ignorieren
       if (["BUTTON", "INPUT"].includes(e.target.tagName)) return;
       openFolder(f.id, f.name);
+    };
+
+    card.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        if (["BUTTON", "INPUT"].includes(e.target.tagName)) return;
+        e.preventDefault();
+        openFolder(f.id, f.name);
+      }
     };
 
     // Header Zeile
