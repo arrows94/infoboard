@@ -21,3 +21,6 @@
 ## 2025-03-09 - Batch DOM Insertions with DocumentFragment
 **Learning:** When dynamically building UI components (like folder cards or carousel items) in vanilla JavaScript by iterating over state arrays and repeatedly appending to the live DOM using `appendChild()`, the browser triggers expensive layout recalculations (reflows) on every single iteration.
 **Action:** Always utilize a `DocumentFragment` (`document.createDocumentFragment()`) when inserting multiple elements into the DOM inside a loop. Append children to the memory-bound fragment first, and append the fragment to the live DOM once, drastically reducing reflow overhead.
+## $(date +%Y-%m-%d) - Offload Blocking File Operations to Asyncio Threads
+**Learning:** In asynchronous Python applications like FastAPI, standard library file operations (such as `shutil.rmtree`, `shutil.move`, and `Path.unlink`) are inherently synchronous and can block the main event loop. For directories with thousands of files, `shutil.rmtree` can block the loop for over 100ms, stalling all incoming requests and WebSocket frames.
+**Action:** When performing heavy or bulk file I/O in async endpoints, wrap the operations in `loop.run_in_executor` (or `asyncio.to_thread` for Python 3.9+) to dispatch them to a background thread and preserve event loop responsiveness.

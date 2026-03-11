@@ -340,6 +340,14 @@ def _save_image_list_for(folder_id: str, images: List[Dict[str, Any]]) -> None:
     idx["images"][folder_id] = images
     save_index(idx)
 
+# ⚡ Bolt: Helper to delete files in a thread to prevent event loop stalls
+def _delete_files_sync(paths: List[Path]) -> None:
+    for p in paths:
+        try:
+            p.unlink(missing_ok=True)
+        except Exception:
+            pass
+
 # ⚡ Bolt: Process image and thumbnail together to avoid redundant I/O and resizing from massive original files.
 def _process_image(src_path: Path, dst_path: Path, thumb_path: Path) -> Tuple[int, int]:
     with Image.open(src_path) as im:
@@ -482,7 +490,9 @@ async def delete_folder(folder_id: str, request: Request) -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail="Folder not found")
     # delete media directory
     try:
-        shutil.rmtree(_folder_path(folder), ignore_errors=True)
+        # ⚡ Bolt: Offload blocking I/O directory deletion to a thread to prevent event loop stalls
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, lambda: shutil.rmtree(_folder_path(folder), ignore_errors=True))
     except Exception:
         pass
     # remove from folders
@@ -548,7 +558,9 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
             dst = folder_dir / filename
             # Move tmp file to dst directly
             try:
-                shutil.move(str(tmp_file), str(dst))
+                # ⚡ Bolt: Offload blocking I/O file move to a thread
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, shutil.move, str(tmp_file), str(dst))
             except Exception:
                 # cleanup if move fails
                 try:
@@ -623,22 +635,25 @@ async def batch_delete_images(folder_id: str, request: Request) -> Dict[str, Any
     images = _image_list_for(folder_id)
     keep: List[Dict[str, Any]] = []
     removed_count = 0
+    to_delete: List[Path] = []
 
     for im in images:
         if im.get("id") in image_ids:
-            # delete files
-            try:
-                (folder_dir / im["filename"]).unlink(missing_ok=True)
-                thumb = im.get("thumb")
-                if thumb:
-                    (folder_dir / thumb).unlink(missing_ok=True)
-            except Exception:
-                pass
+            # collect files to delete
+            to_delete.append(folder_dir / im["filename"])
+            thumb = im.get("thumb")
+            if thumb:
+                to_delete.append(folder_dir / thumb)
             removed_count += 1
         else:
             keep.append(im)
 
     if removed_count > 0:
+        # ⚡ Bolt: Offload file unlinking batch to avoid event loop stalls
+        if to_delete:
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, _delete_files_sync, to_delete)
+
         _save_image_list_for(folder_id, keep)
         await hub.broadcast({"type": "refresh", "reason": "images"})
 
@@ -662,14 +677,15 @@ async def delete_image(folder_id: str, image_id: str, request: Request) -> Dict[
     if removed is None:
         raise HTTPException(status_code=404, detail="Image not found")
 
-    # delete files
-    try:
-        (folder_dir / removed["filename"]).unlink(missing_ok=True)
-        thumb = removed.get("thumb")
-        if thumb:
-            (folder_dir / thumb).unlink(missing_ok=True)
-    except Exception:
-        pass
+    # collect files to delete
+    to_delete: List[Path] = [folder_dir / removed["filename"]]
+    thumb = removed.get("thumb")
+    if thumb:
+        to_delete.append(folder_dir / thumb)
+
+    # ⚡ Bolt: Offload file unlinking to avoid event loop stalls
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, _delete_files_sync, to_delete)
 
     _save_image_list_for(folder_id, keep)
     await hub.broadcast({"type": "refresh", "reason": "images"})
