@@ -364,7 +364,7 @@ function renderFolders() {
     const upInput = document.createElement("input");
     upInput.type = "file";
     upInput.multiple = true;
-    upInput.accept = "image/*";
+    upInput.accept = "image/*,video/mp4,video/webm,video/quicktime";
     upInput.style.display = "none";
     upInput.onchange = async () => {
       if (!upInput.files.length) return;
