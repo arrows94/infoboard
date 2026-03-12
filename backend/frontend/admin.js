@@ -14,6 +14,8 @@ function showToast(message, keepAlive = false) {
 
   const el = document.createElement("div");
   el.id = "admin-toast";
+  el.setAttribute("role", "status");
+  el.setAttribute("aria-live", "polite");
   el.textContent = message;
   el.style.position = "fixed";
   el.style.bottom = "20px";
