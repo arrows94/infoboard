@@ -482,7 +482,8 @@ async def delete_folder(folder_id: str, request: Request) -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail="Folder not found")
     # delete media directory
     try:
-        shutil.rmtree(_folder_path(folder), ignore_errors=True)
+        # ⚡ Bolt: Offload blocking I/O (directory deletion) to thread to prevent blocking the async event loop
+        await asyncio.to_thread(shutil.rmtree, _folder_path(folder), ignore_errors=True)
     except Exception:
         pass
     # remove from folders
@@ -548,7 +549,8 @@ async def upload_images(folder_id: str, request: Request, files: List[UploadFile
             dst = folder_dir / filename
             # Move tmp file to dst directly
             try:
-                shutil.move(str(tmp_file), str(dst))
+                # ⚡ Bolt: Offload blocking I/O (large file move) to thread to prevent blocking the async event loop
+                await asyncio.to_thread(shutil.move, str(tmp_file), str(dst))
             except Exception:
                 # cleanup if move fails
                 try:

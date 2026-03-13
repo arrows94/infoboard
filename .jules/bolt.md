@@ -21,3 +21,6 @@
 ## 2025-03-09 - Batch DOM Insertions with DocumentFragment
 **Learning:** When dynamically building UI components (like folder cards or carousel items) in vanilla JavaScript by iterating over state arrays and repeatedly appending to the live DOM using `appendChild()`, the browser triggers expensive layout recalculations (reflows) on every single iteration.
 **Action:** Always utilize a `DocumentFragment` (`document.createDocumentFragment()`) when inserting multiple elements into the DOM inside a loop. Append children to the memory-bound fragment first, and append the fragment to the live DOM once, drastically reducing reflow overhead.
+## 2025-03-13 - Offload Blocking File Operations in Async Handlers
+**Learning:** Using synchronous file operations like `shutil.rmtree` (deleting directories with many media files) and `shutil.move` (moving large 500MB uploaded videos) inside `async def` FastAPI route handlers blocks the main async event loop. This leads to dropped WebSocket pings, broadcast storms, and stalled API requests for all other users.
+**Action:** Always offload blocking I/O (like heavy `shutil` operations) or CPU-bound tasks inside `async def` routes to thread pools using `await asyncio.to_thread(...)`.
