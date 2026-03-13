@@ -353,7 +353,7 @@ function renderFolders() {
     const strongName = document.createElement("strong");
     strongName.textContent = f.name;
     const spanMuted = el("span", "muted");
-    spanMuted.textContent = ` (${ims.length} Bilder)`;
+    spanMuted.textContent = ` (${ims.length} Medien)`;
     title.appendChild(strongName);
     title.appendChild(spanMuted);
 

@@ -39,7 +39,7 @@ DEFAULT_LAT = float(os.environ.get("DEFAULT_LAT", "51.3"))
 DEFAULT_LON = float(os.environ.get("DEFAULT_LON", "10.3"))
 
 MAX_UPLOAD_FILES = 30
-MAX_UPLOAD_MB_PER_FILE = 25  # client side should keep it reasonable
+MAX_UPLOAD_MB_PER_FILE = 500  # allow larger files for videos
 
 # Resize targets
 MAX_IMAGE_EDGE = 1920
