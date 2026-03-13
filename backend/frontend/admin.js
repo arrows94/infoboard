@@ -351,7 +351,7 @@ function renderFolders() {
     const strongName = document.createElement("strong");
     strongName.textContent = f.name;
     const spanMuted = el("span", "muted");
-    spanMuted.textContent = ` (${ims.length} Bilder)`;
+    spanMuted.textContent = ` (${ims.length} Medien)`;
     title.appendChild(strongName);
     title.appendChild(spanMuted);
 
@@ -364,7 +364,7 @@ function renderFolders() {
     const upInput = document.createElement("input");
     upInput.type = "file";
     upInput.multiple = true;
-    upInput.accept = "image/*";
+    upInput.accept = "image/*,video/mp4,video/webm,video/quicktime";
     upInput.style.display = "none";
     upInput.onchange = async () => {
       if (!upInput.files.length) return;
