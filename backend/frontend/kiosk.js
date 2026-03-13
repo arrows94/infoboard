@@ -587,5 +587,15 @@ async function init() {
 
 init().catch((err) => {
   const main = document.getElementById("mainPanel");
-  main.innerHTML = `<div class="kioskText"><h1>Fehler</h1><p>${String(err)}</p></div>`;
+  main.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "kioskText";
+  const h1 = document.createElement("h1");
+  h1.textContent = "Fehler";
+  const p = document.createElement("p");
+  // 🛡️ Sentinel: Safe error rendering to prevent DOM-based XSS
+  p.textContent = String(err);
+  div.appendChild(h1);
+  div.appendChild(p);
+  main.appendChild(div);
 });
