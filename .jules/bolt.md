@@ -24,3 +24,7 @@
 ## 2025-03-13 - Offload Blocking File Operations in Async Handlers
 **Learning:** Using synchronous file operations like `shutil.rmtree` (deleting directories with many media files) and `shutil.move` (moving large 500MB uploaded videos) inside `async def` FastAPI route handlers blocks the main async event loop. This leads to dropped WebSocket pings, broadcast storms, and stalled API requests for all other users.
 **Action:** Always offload blocking I/O (like heavy `shutil` operations) or CPU-bound tasks inside `async def` routes to thread pools using `await asyncio.to_thread(...)`.
+
+## 2025-03-XX - Intl.DateTimeFormat Instantiation in Render Loop
+**Learning:** Instantiating `Intl.DateTimeFormat` inside a frequently called function (like `setClock` which runs every 5 seconds) or `Date.prototype.toLocaleDateString` is notoriously slow and creates unnecessary garbage collection overhead.
+**Action:** Extract `Intl.DateTimeFormat` instantiation outside of loops or frequently called functions and reuse the instance to format dates, which is significantly faster.
