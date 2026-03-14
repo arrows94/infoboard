@@ -499,6 +499,18 @@ function openFolder(folderId, folderName) {
   const grid = document.getElementById("detailGrid");
   grid.innerHTML = "";
 
+  const selectAllRow = document.getElementById("selectAllRow");
+  if (currentFolderImages.length === 0) {
+    if (selectAllRow) selectAllRow.style.display = "none";
+    const emptyMsg = document.createElement("p");
+    emptyMsg.className = "muted";
+    emptyMsg.style.cssText = "margin: 15px;";
+    emptyMsg.textContent = "Dieser Ordner ist noch leer. Bitte lade Bilder hoch.";
+    grid.appendChild(emptyMsg);
+    return;
+  }
+  if (selectAllRow) selectAllRow.style.display = "";
+
   // ⚡ Bolt: Use DocumentFragment to batch DOM insertions and prevent excessive reflows
   const frag = document.createDocumentFragment();
   for (const im of currentFolderImages) {
@@ -530,6 +542,7 @@ function openFolder(folderId, folderName) {
     check.style.cssText =
       "position:absolute; top:5px; left:5px; transform:scale(1.3); cursor:pointer;";
     check.checked = selectedImages.has(im.id);
+    check.setAttribute("aria-label", `Bild ${im.filename || 'auswählen'}`);
     check.onchange = () => toggleSelection(im.id);
 
     // Dataset ID speichern für schnelles UI Update
