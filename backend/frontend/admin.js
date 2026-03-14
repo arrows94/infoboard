@@ -437,6 +437,14 @@ function renderFolders() {
       upInput.click();
     };
 
+    // Disabled state for file input is handled in upInput.onchange
+    upInput.addEventListener("change", () => {
+        if(upInput.files.length) {
+            btnUp.disabled = true;
+            btnUp.textContent = "Lädt...";
+        }
+    });
+
     const btnDel = el("button", "btn");
     btnDel.textContent = "Ordner löschen";
     btnDel.style.padding = "4px 10px";
@@ -444,8 +452,16 @@ function renderFolders() {
     btnDel.onclick = async (e) => {
       e.stopPropagation();
       if (confirm(`Ordner "${f.name}" wirklich komplett löschen?`)) {
-        await apiDelete(`/api/folders/${f.id}`);
-        await reloadAll();
+        try {
+          btnDel.disabled = true;
+          btnDel.textContent = "Lösche...";
+          await apiDelete(`/api/folders/${f.id}`);
+          await reloadAll();
+        } catch (err) {
+          console.error(err);
+          btnDel.disabled = false;
+          btnDel.textContent = "Ordner löschen";
+        }
       }
     };
 
@@ -744,10 +760,21 @@ function bindButtons() {
     btnCreate.onclick = async () => {
       const name = inpNewFolder.value.trim();
       if (!name) return;
-      await apiPost("/api/folders", { name });
-      inpNewFolder.value = "";
-      showToast(`Ordner "${name}" erstellt!`);
-      await reloadAll();
+
+      try {
+        btnCreate.disabled = true;
+        btnCreate.textContent = "Erstelle...";
+        await apiPost("/api/folders", { name });
+        inpNewFolder.value = "";
+        showToast(`Ordner "${name}" erstellt!`);
+        await reloadAll();
+      } catch (err) {
+        console.error(err);
+        showToast("Fehler beim Erstellen des Ordners.");
+      } finally {
+        btnCreate.disabled = false;
+        btnCreate.textContent = "Ordner anlegen";
+      }
     };
 
     // Keyboard support for Enter
