@@ -587,5 +587,13 @@ async function init() {
 
 init().catch((err) => {
   const main = document.getElementById("mainPanel");
-  main.innerHTML = `<div class="kioskText"><h1>Fehler</h1><p>${String(err)}</p></div>`;
+  main.innerHTML = "";
+  const errDiv = el("div", "kioskText");
+  const errH1 = el("h1");
+  errH1.textContent = "Fehler";
+  const errP = el("p");
+  errP.textContent = String(err);
+  errDiv.appendChild(errH1);
+  errDiv.appendChild(errP);
+  main.appendChild(errDiv);
 });
