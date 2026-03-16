@@ -16,7 +16,7 @@
         <div class="adminActions">
           <button id="btnSave" class="btn primary">Speichern</button>
           <button id="btnReload" class="btn">Neu laden</button>
-          <a class="btn" href="/">Kiosk öffnen</a>
+          <a class="btn" href="/" target="_blank" rel="noopener">Kiosk öffnen</a>
         </div>
       </header>
 
@@ -33,8 +33,8 @@
             placeholder="Passwort"
             aria-label="Admin-Passwort"
           />
-          <button id="btnSetPw" class="btn primary">Setzen</button>
-          <button id="btnClearPw" class="btn">Löschen</button>
+          <button id="btnSetPw" class="btn primary" aria-label="Admin-Passwort setzen">Setzen</button>
+          <button id="btnClearPw" class="btn" aria-label="Admin-Passwort löschen">Löschen</button>
         </div>
         <div id="authStatus" class="pill warn">Nicht verbunden</div>
       </section>

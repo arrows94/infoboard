@@ -179,6 +179,7 @@ function bindConfigToForm() {
       opt.selected = config.carousel.folders.includes(opt.value);
     }
   }
+
 }
 
 function readFormToConfig() {
@@ -430,6 +431,7 @@ function renderFolders() {
 
     const btnUp = el("button", "btn primary");
     btnUp.textContent = "Upload";
+    btnUp.setAttribute("aria-label", `Dateien in Ordner ${f.name} hochladen`);
     btnUp.style.padding = "4px 10px";
     btnUp.style.fontSize = "14px";
     btnUp.onclick = (e) => {
@@ -439,6 +441,7 @@ function renderFolders() {
 
     const btnDel = el("button", "btn");
     btnDel.textContent = "Ordner löschen";
+    btnDel.setAttribute("aria-label", `Ordner ${f.name} komplett löschen`);
     btnDel.style.padding = "4px 10px";
     btnDel.style.fontSize = "14px";
     btnDel.onclick = async (e) => {
@@ -790,6 +793,14 @@ function bindButtons() {
         e.preventDefault();
         btnCreate.click();
       }
+    });
+  }
+
+  // Theme Live-Preview
+  const themeSel = document.getElementById("theme");
+  if (themeSel) {
+    themeSel.addEventListener("change", (e) => {
+      setTheme(e.target.value);
     });
   }
 }
