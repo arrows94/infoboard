@@ -625,20 +625,26 @@ async def batch_delete_images(folder_id: str, request: Request) -> Dict[str, Any
     images = _image_list_for(folder_id)
     keep: List[Dict[str, Any]] = []
     removed_count = 0
+    files_to_delete: List[Tuple[str, Optional[str]]] = []
 
     for im in images:
         if im.get("id") in image_ids:
-            # delete files
-            try:
-                (folder_dir / im["filename"]).unlink(missing_ok=True)
-                thumb = im.get("thumb")
-                if thumb:
-                    (folder_dir / thumb).unlink(missing_ok=True)
-            except Exception:
-                pass
+            files_to_delete.append((im["filename"], im.get("thumb")))
             removed_count += 1
         else:
             keep.append(im)
+
+    if files_to_delete:
+        # ⚡ Bolt: Offload bulk synchronous file deletions to a single background thread to prevent blocking the async event loop during batch operations.
+        def _do_delete():
+            for filename, thumb in files_to_delete:
+                try:
+                    (folder_dir / filename).unlink(missing_ok=True)
+                    if thumb:
+                        (folder_dir / thumb).unlink(missing_ok=True)
+                except Exception:
+                    pass
+        await asyncio.to_thread(_do_delete)
 
     if removed_count > 0:
         _save_image_list_for(folder_id, keep)
