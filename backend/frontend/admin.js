@@ -444,8 +444,15 @@ function renderFolders() {
     btnDel.onclick = async (e) => {
       e.stopPropagation();
       if (confirm(`Ordner "${f.name}" wirklich komplett löschen?`)) {
-        await apiDelete(`/api/folders/${f.id}`);
-        await reloadAll();
+        btnDel.disabled = true;
+        btnDel.textContent = "Lösche...";
+        try {
+          await apiDelete(`/api/folders/${f.id}`);
+          await reloadAll();
+        } finally {
+          btnDel.disabled = false;
+          btnDel.textContent = "Ordner löschen";
+        }
       }
     };
 
@@ -692,10 +699,19 @@ function bindButtons() {
   const btnSetPw = document.getElementById("btnSetPw");
   const inputPw = document.getElementById("adminPw");
 
-  btnSetPw.onclick = () => {
+  btnSetPw.onclick = async () => {
     adminPw = inputPw.value || "";
     localStorage.setItem("kita_admin_pw", adminPw);
-    reloadAll().catch(() => setAuthStatus(false));
+    btnSetPw.disabled = true;
+    btnSetPw.textContent = "Prüfe...";
+    try {
+      await reloadAll();
+    } catch (e) {
+      setAuthStatus(false);
+    } finally {
+      btnSetPw.disabled = false;
+      btnSetPw.textContent = "Setzen";
+    }
   };
 
   // Keyboard support for Enter
@@ -714,8 +730,19 @@ function bindButtons() {
   };
 
   // Global Actions
-  document.getElementById("btnReload").onclick = () =>
-    reloadAll().catch(() => setAuthStatus(false));
+  const btnReload = document.getElementById("btnReload");
+  btnReload.onclick = async () => {
+    btnReload.disabled = true;
+    btnReload.textContent = "Lade...";
+    try {
+      await reloadAll();
+    } catch (e) {
+      setAuthStatus(false);
+    } finally {
+      btnReload.disabled = false;
+      btnReload.textContent = "Neu laden";
+    }
+  };
 
   const btnSave = document.getElementById("btnSave");
   btnSave.onclick = async () => {
@@ -744,10 +771,17 @@ function bindButtons() {
     btnCreate.onclick = async () => {
       const name = inpNewFolder.value.trim();
       if (!name) return;
-      await apiPost("/api/folders", { name });
-      inpNewFolder.value = "";
-      showToast(`Ordner "${name}" erstellt!`);
-      await reloadAll();
+      btnCreate.disabled = true;
+      btnCreate.textContent = "Erstelle...";
+      try {
+        await apiPost("/api/folders", { name });
+        inpNewFolder.value = "";
+        showToast(`Ordner "${name}" erstellt!`);
+        await reloadAll();
+      } finally {
+        btnCreate.disabled = false;
+        btnCreate.textContent = "Ordner anlegen";
+      }
     };
 
     // Keyboard support for Enter

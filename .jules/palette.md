@@ -30,3 +30,6 @@
 ## $(date +%Y-%m-%d) - Accessible Toast Notifications
 **Learning:** Custom toast notifications created dynamically via JavaScript (like `showToast`) must include `role="status"` and `aria-live="polite"` to be automatically announced by screen readers without stealing focus from the user's current task.
 **Action:** Always ensure transient notification elements (e.g. toasts, snackbars) have these accessibility attributes applied upon creation.
+## 2024-05-18 - Async Action Button Feedback
+**Learning:** Async buttons (e.g. Save, Delete, Create) without immediate visual feedback can lead to user confusion and double-submissions, especially when API responses are slightly delayed.
+**Action:** Always disable async buttons and update their text (e.g. "Saving...") immediately upon click, and ensure they are reliably re-enabled using a `try...finally` block.
