@@ -14,17 +14,20 @@ function el(tag, cls) {
   return e;
 }
 
+// ⚡ Bolt: Cache Intl.DateTimeFormat to avoid recreating it in the setClock interval
+const dateFormatter = new Intl.DateTimeFormat("de-DE", {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "2-digit",
+});
+
 function setClock() {
   const d = new Date();
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
   document.getElementById("clock").textContent = `${hh}:${mm}`;
-  const dateFmt = d.toLocaleDateString("de-DE", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-  });
+  const dateFmt = dateFormatter.format(d);
   document.getElementById("date").textContent = dateFmt;
 }
 
