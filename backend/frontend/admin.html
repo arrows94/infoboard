@@ -169,16 +169,16 @@
             <label for="eventsTitle" class="label">Titel</label>
             <input id="eventsTitle" class="input" type="text" />
           </div>
-          <label for="eventsItems" class="label"
-            >Einträge (DD.MM.YYYY Beschreibung)</label
-          >
-          <textarea
-            id="eventsItems"
-            class="textarea"
-            rows="6"
-            placeholder="15.03.2025 Frühlingsfest"
-          ></textarea>
-          <p class="muted">
+          <label class="label">Neuer Termin</label>
+          <div class="row">
+            <input type="date" id="newEventDate" class="input" aria-label="Datum des Termins" />
+            <input type="text" id="newEventText" class="input" placeholder="Beschreibung (z.B. Frühlingsfest)" aria-label="Beschreibung des Termins" />
+            <button type="button" id="btnAddEvent" class="btn primary">Hinzufügen</button>
+          </div>
+          <div id="eventsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+            <!-- Termine werden hier dynamisch per JS eingefügt -->
+          </div>
+          <p class="muted" style="margin-top: 10px;">
             Vergangene Termine werden auf dem Kiosk automatisch ausgeblendet.
           </p>
 

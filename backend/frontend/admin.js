@@ -153,9 +153,7 @@ function bindConfigToForm() {
   document.getElementById("eventsEnabled").checked = !!config.events?.enabled;
   document.getElementById("eventsTitle").value =
     config.events?.title ?? "Termine";
-  document.getElementById("eventsItems").value = (
-    config.events?.items || []
-  ).join("\n");
+  renderEventsList();
 
   // Ordner Auswahl für Karussell
   const sel = document.getElementById("carouselFolders");
@@ -230,11 +228,8 @@ function readFormToConfig() {
   // Events lesen
   const eventsEnabled = document.getElementById("eventsEnabled").checked;
   const eventsTitle = document.getElementById("eventsTitle").value;
-  const eventsItems = document
-    .getElementById("eventsItems")
-    .value.split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // Events are already managed in config.events.items via the UI, no need to read from a textarea
+  const eventsItems = config.events?.items || [];
 
   const folderSelect = document.getElementById("carouselFolders");
   const selected = Array.from(folderSelect.selectedOptions).map((o) => o.value);
@@ -694,7 +689,95 @@ async function reloadAll() {
   setAuthStatus(true);
 }
 
+function renderEventsList() {
+  const container = document.getElementById("eventsList");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const items = config.events?.items || [];
+
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "muted";
+    empty.textContent = "Keine Termine vorhanden.";
+    container.appendChild(empty);
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  items.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 8px 12px; border-radius: 4px; border: 1px solid #444;";
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = item;
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn";
+    delBtn.textContent = "Löschen";
+    delBtn.style.padding = "4px 8px";
+    delBtn.style.fontSize = "12px";
+    delBtn.setAttribute("aria-label", `Termin löschen: ${item}`);
+    delBtn.onclick = () => {
+      config.events.items.splice(index, 1);
+      renderEventsList();
+    };
+
+    row.appendChild(textSpan);
+    row.appendChild(delBtn);
+    frag.appendChild(row);
+  });
+
+  container.appendChild(frag);
+}
+
 function bindButtons() {
+  // Event hinzufügen Button
+  const btnAddEvent = document.getElementById("btnAddEvent");
+  if (btnAddEvent) {
+    btnAddEvent.onclick = () => {
+      const dateInput = document.getElementById("newEventDate");
+      const textInput = document.getElementById("newEventText");
+
+      const dateVal = dateInput.value;
+      const textVal = textInput.value.trim();
+
+      if (!dateVal || !textVal) {
+        showToast("Bitte Datum und Beschreibung eingeben.");
+        return;
+      }
+
+      // Parse YYYY-MM-DD to DD.MM.YYYY
+      const parts = dateVal.split("-");
+      if (parts.length === 3) {
+        const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+        const newItem = `${formattedDate} ${textVal}`;
+
+        if (!config.events) config.events = {};
+        if (!config.events.items) config.events.items = [];
+
+        config.events.items.push(newItem);
+
+        // Optional: Sort items by date
+        config.events.items.sort((a, b) => {
+          const parseDate = (str) => {
+            const match = str.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+            if (!match) return 0;
+            return new Date(`${match[3]}-${match[2]}-${match[1]}`).getTime();
+          };
+          return parseDate(a) - parseDate(b);
+        });
+
+        renderEventsList();
+
+        // Reset inputs
+        dateInput.value = "";
+        textInput.value = "";
+      }
+    };
+  }
+
   // Passwort Buttons
   const btnSetPw = document.getElementById("btnSetPw");
   const inputPw = document.getElementById("adminPw");
