@@ -601,7 +601,7 @@ select.input:focus-visible {
   display: flex;
   gap: 12px;
   align-items: baseline;
-  font-size: 20px; /* Schön groß für TV */
+  font-size: 18px; /* Slightly smaller to fit better */
   line-height: 1.4;
 }
 .eventDate {
@@ -612,6 +612,8 @@ select.input:focus-visible {
 }
 .eventText {
   color: rgba(255, 255, 255, 0.9);
+  word-break: break-word; /* Ensure long words break instead of overflowing */
+  overflow-wrap: break-word;
 }
 
 /* Ordner Karten Hover Effekt */
