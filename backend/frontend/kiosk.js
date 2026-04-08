@@ -294,36 +294,38 @@ function buildInfoColumn(cfg, weather) {
   if (eventBox) frag.appendChild(eventBox);
 
   // Ampel
-  const ab = el("div", "box");
-  const ah = el("h3");
-  ah.textContent = "Betreuungsampel";
-  ab.appendChild(ah);
+  if (cfg.info_boxes?.ampel?.enabled !== false) {
+    const ab = el("div", "box");
+    const ah = el("h3");
+    ah.textContent = "Betreuungsampel";
+    ab.appendChild(ah);
 
-  const row = el("div", "ampel");
+    const row = el("div", "ampel");
 
-  const lights = el("div", "lights");
-  const lG = el("div", "light");
-  const lY = el("div", "light");
-  const lR = el("div", "light");
-  lights.append(lG, lY, lR);
+    const lights = el("div", "lights");
+    const lG = el("div", "light");
+    const lY = el("div", "light");
+    const lR = el("div", "light");
+    lights.append(lG, lY, lR);
 
-  const status = (cfg.info_boxes?.ampel?.status || "green").toLowerCase();
-  if (status === "green") lG.classList.add("on", "green");
-  if (status === "yellow") lY.classList.add("on", "yellow");
-  if (status === "red") lR.classList.add("on", "red");
+    const status = (cfg.info_boxes?.ampel?.status || "green").toLowerCase();
+    if (status === "green") lG.classList.add("on", "green");
+    if (status === "yellow") lY.classList.add("on", "yellow");
+    if (status === "red") lR.classList.add("on", "red");
 
-  row.appendChild(lights);
+    row.appendChild(lights);
 
-  const txt = el("div");
-  const lab = el("div", "ampelLabel");
-  lab.textContent = cfg.info_boxes?.ampel?.label || "—";
-  const det = el("div", "ampelDetail");
-  det.innerHTML = markdownToHtml(cfg.info_boxes?.ampel?.details || "");
-  txt.append(lab, det);
-  row.appendChild(txt);
+    const txt = el("div");
+    const lab = el("div", "ampelLabel");
+    lab.textContent = cfg.info_boxes?.ampel?.label || "—";
+    const det = el("div", "ampelDetail");
+    det.innerHTML = markdownToHtml(cfg.info_boxes?.ampel?.details || "");
+    txt.append(lab, det);
+    row.appendChild(txt);
 
-  ab.appendChild(row);
-  frag.appendChild(ab);
+    ab.appendChild(row);
+    frag.appendChild(ab);
+  }
 
   // Custom boxes
   const custom = cfg.info_boxes?.custom || [];
