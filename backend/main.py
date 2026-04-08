@@ -123,15 +123,6 @@ def default_config() -> Dict[str, Any]:
             "title": "Willkommen!",
             "markdown": "### Kita-Infotafel\n\n- Infos für Eltern\n- Wetter & Ampel\n- Bilder & Erinnerungen\n",
         },
-        "info_boxes": {
-            "weather_enabled": True,
-            "weather": {
-                "city": DEFAULT_CITY,
-                "lat": DEFAULT_LAT,
-                "lon": DEFAULT_LON,
-                "units": "metric",
-            },
-            # EVENTS
         "events": {
             "enabled": True,
             "title": "Nächste Termine",
@@ -140,8 +131,16 @@ def default_config() -> Dict[str, Any]:
                 "01.01.2027 Neujahr"
             ]
         },
-        # --------------------
+        "info_boxes": {
+            "weather_enabled": True,
+            "weather": {
+                "city": DEFAULT_CITY,
+                "lat": DEFAULT_LAT,
+                "lon": DEFAULT_LON,
+                "units": "metric",
+            },
             "ampel": {
+                "enabled": True,
                 "status": "green",  # green | yellow | red
                 "label": "Betreuung normal",
                 "details": "Alles wie geplant.",

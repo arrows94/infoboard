@@ -127,6 +127,8 @@ function bindConfigToForm() {
   document.getElementById("weatherLon").value =
     config.info_boxes?.weather?.lon ?? "";
 
+  document.getElementById("ampelEnabled").checked =
+    config.info_boxes?.ampel?.enabled ?? true;
   document.getElementById("ampelStatus").value =
     config.info_boxes?.ampel?.status ?? "green";
   document.getElementById("ampelLabel").value =
@@ -205,6 +207,7 @@ function readFormToConfig() {
     document.getElementById("weatherLon").value || "0",
   );
 
+  const ampelEnabled = document.getElementById("ampelEnabled").checked;
   const ampelStatus = document.getElementById("ampelStatus").value;
   const ampelLabel = document.getElementById("ampelLabel").value;
   const ampelDetails = document.getElementById("ampelDetails").value;
@@ -262,7 +265,7 @@ function readFormToConfig() {
       lon: weatherLon,
       units: "metric",
     },
-    ampel: { status: ampelStatus, label: ampelLabel, details: ampelDetails },
+    ampel: { enabled: ampelEnabled, status: ampelStatus, label: ampelLabel, details: ampelDetails },
     custom: [
       { title: customTitle, markdown: customMarkdown, enabled: customEnabled },
     ],
@@ -275,6 +278,7 @@ function readFormToConfig() {
     items: tickerItems,
   };
   config.events = {
+    ...config.events,
     enabled: eventsEnabled,
     title: eventsTitle,
     items: eventsItems,
