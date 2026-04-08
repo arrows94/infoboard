@@ -142,6 +142,7 @@ def default_config() -> Dict[str, Any]:
         },
         # --------------------
             "ampel": {
+                "enabled": True,
                 "status": "green",  # green | yellow | red
                 "label": "Betreuung normal",
                 "details": "Alles wie geplant.",
