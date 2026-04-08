@@ -278,6 +278,7 @@ function readFormToConfig() {
     items: tickerItems,
   };
   config.events = {
+    ...config.events,
     enabled: eventsEnabled,
     title: eventsTitle,
     items: eventsItems,
