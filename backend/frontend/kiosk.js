@@ -494,12 +494,13 @@ function render(state) {
 
   // Update grid layout depending on the ratio and info column status
   if (cfg.layout?.show_info_column) {
+    const sidebarWidth = cfg.layout?.sidebar_width || "280px";
     if (aspectRatio === "auto") {
-      layout.style.gridTemplateColumns = "1fr 280px";
+      layout.style.gridTemplateColumns = `1fr ${sidebarWidth}`;
     } else {
       // If a fixed aspect ratio is used, we let the main panel dictate its width via aspect-ratio + height (100%),
-      // and let the info column fill the remaining 1fr space. Ensure min width of 280px for info.
-      layout.style.gridTemplateColumns = "auto minmax(280px, 1fr)";
+      // and let the info column fill the remaining 1fr space.
+      layout.style.gridTemplateColumns = `auto minmax(${sidebarWidth}, 1fr)`;
     }
   } else {
     if (aspectRatio === "auto") {

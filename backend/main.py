@@ -113,6 +113,7 @@ def default_config() -> Dict[str, Any]:
             "show_ticker": True,
             "mode": "carousel",  # carousel | text
             "image_aspect_ratio": "auto",  # auto | 16:9 | 4:3
+            "sidebar_width": "280px",
         },
         "carousel": {
             "interval_sec": 10,
