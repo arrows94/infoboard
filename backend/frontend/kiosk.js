@@ -311,12 +311,15 @@ function buildInfoColumn(cfg, weather) {
     if (status === "red") lR.classList.add("on", "red");
 
     if (layout === "topbar") {
-      // Topbar (Horizontal) Layout
+      // Topbar (Horizontal) Layout inside a box
       lights.classList.add("horizontal");
-      lG.classList.add("medium");
-      lY.classList.add("medium");
-      lR.classList.add("medium");
-      topbarAmpel.appendChild(lights);
+      lG.classList.add("large");
+      lY.classList.add("large");
+      lR.classList.add("large");
+
+      const box = el("div", "ampel-topbar-box");
+      box.appendChild(lights);
+      topbarAmpel.appendChild(box);
     } else {
       // Sidebar (Centered/Large) Layout
       lG.classList.add("large");
