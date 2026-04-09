@@ -200,6 +200,38 @@ a {
   line-height: 1.5;
 }
 
+/* Weather styling */
+.wx-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wx-current .wx-icon {
+  width: 54px;
+  height: 54px;
+  color: var(--accent);
+}
+.wx-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wx-daily {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wx-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.wind-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+}
+
 .ticker {
   height: 56px;
   display: none;
