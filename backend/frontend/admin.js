@@ -108,6 +108,7 @@ function bindConfigToForm() {
   document.getElementById("aspectRatio").value = config.layout?.image_aspect_ratio || "auto";
   document.getElementById("showInfo").checked =
     !!config.layout?.show_info_column;
+  document.getElementById("sidebarWidth").value = config.layout?.sidebar_width || "280px";
   document.getElementById("showTicker").checked = !!config.layout?.show_ticker;
 
   document.getElementById("intervalSec").value =
@@ -186,6 +187,7 @@ function readFormToConfig() {
   const mode = document.getElementById("mode").value;
   const aspectRatio = document.getElementById("aspectRatio").value;
   const showInfo = document.getElementById("showInfo").checked;
+  const sidebarWidth = document.getElementById("sidebarWidth").value;
   const showTicker = document.getElementById("showTicker").checked;
 
   const intervalSec = clamp(
@@ -245,6 +247,7 @@ function readFormToConfig() {
     mode,
     image_aspect_ratio: aspectRatio,
     show_info_column: showInfo,
+    sidebar_width: sidebarWidth,
     show_ticker: showTicker,
   };
   config.carousel = {
