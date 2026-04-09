@@ -294,13 +294,11 @@ function buildInfoColumn(cfg, weather) {
   if (eventBox) frag.appendChild(eventBox);
 
   // Ampel
+  const topbarAmpel = document.getElementById("topbarAmpel");
+  topbarAmpel.innerHTML = ""; // Clear previous
   if (cfg.info_boxes?.ampel?.enabled !== false) {
-    const ab = el("div", "box");
-    const ah = el("h3");
-    ah.textContent = "Betreuungsampel";
-    ab.appendChild(ah);
-
-    const row = el("div", "ampel");
+    const layout = cfg.info_boxes?.ampel?.layout || "sidebar";
+    const status = (cfg.info_boxes?.ampel?.status || "green").toLowerCase();
 
     const lights = el("div", "lights");
     const lG = el("div", "light");
@@ -308,23 +306,44 @@ function buildInfoColumn(cfg, weather) {
     const lR = el("div", "light");
     lights.append(lG, lY, lR);
 
-    const status = (cfg.info_boxes?.ampel?.status || "green").toLowerCase();
     if (status === "green") lG.classList.add("on", "green");
     if (status === "yellow") lY.classList.add("on", "yellow");
     if (status === "red") lR.classList.add("on", "red");
 
-    row.appendChild(lights);
+    if (layout === "topbar") {
+      // Topbar (Horizontal) Layout
+      lights.classList.add("horizontal");
+      lG.classList.add("medium");
+      lY.classList.add("medium");
+      lR.classList.add("medium");
+      topbarAmpel.appendChild(lights);
+    } else {
+      // Sidebar (Centered/Large) Layout
+      lG.classList.add("large");
+      lY.classList.add("large");
+      lR.classList.add("large");
 
-    const txt = el("div");
-    const lab = el("div", "ampelLabel");
-    lab.textContent = cfg.info_boxes?.ampel?.label || "—";
-    const det = el("div", "ampelDetail");
-    det.innerHTML = markdownToHtml(cfg.info_boxes?.ampel?.details || "");
-    txt.append(lab, det);
-    row.appendChild(txt);
+      const ab = el("div", "box");
+      const ah = el("h3");
+      ah.textContent = "Betreuungsampel";
+      ab.appendChild(ah);
 
-    ab.appendChild(row);
-    frag.appendChild(ab);
+      const row = el("div", "ampel", "ampel-sidebar");
+      row.classList.add("ampel-sidebar");
+
+      row.appendChild(lights);
+
+      const txt = el("div", "ampelText");
+      const lab = el("div", "ampelLabel");
+      lab.textContent = cfg.info_boxes?.ampel?.label || "—";
+      const det = el("div", "ampelDetail");
+      det.innerHTML = markdownToHtml(cfg.info_boxes?.ampel?.details || "");
+      txt.append(lab, det);
+      row.appendChild(txt);
+
+      ab.appendChild(row);
+      frag.appendChild(ab);
+    }
   }
 
   // Custom boxes
