@@ -1,4 +1,4 @@
-import { markdownToHtml, wxCodeToLabel, clamp } from "./utils.js";
+import { markdownToHtml, wxCodeToLabel, wxCodeToIcon, windIcon, clamp } from "./utils.js";
 
 let state = null;
 let ws = null;
@@ -267,19 +267,29 @@ function buildInfoColumn(cfg, weather) {
       p.textContent = "Wetterdaten nicht verfügbar.";
       box.appendChild(p);
     } else if (weather?.current) {
-      const temp = el("div", "big");
-      temp.textContent = `${Math.round(weather.current.temp)}°`;
+      const temp = el("div", "big wx-current");
+      const currentIcon = wxCodeToIcon(weather.current.code);
+      temp.innerHTML = `${currentIcon} ${Math.round(weather.current.temp)}°`;
       box.appendChild(temp);
 
-      const label = el("div", "small");
+      const label = el("div", "small wx-label");
       const wx = wxCodeToLabel(weather.current.code);
-      label.textContent = `${wx} · Wind ${Math.round(weather.current.wind)} km/h`;
+      label.innerHTML = `${wx} · ${windIcon} ${Math.round(weather.current.wind)} km/h`;
       box.appendChild(label);
 
       if (Array.isArray(weather.daily) && weather.daily[0]) {
         const d0 = weather.daily[0];
-        const small = el("div", "small");
-        small.textContent = `Heute: ${Math.round(d0.tmin)} – ${Math.round(d0.tmax)}°`;
+        const small = el("div", "small wx-daily");
+        const todayIcon = wxCodeToIcon(d0.code);
+        small.innerHTML = `${todayIcon} Heute: ${Math.round(d0.tmin)} – ${Math.round(d0.tmax)}°`;
+        box.appendChild(small);
+      }
+
+      if (Array.isArray(weather.daily) && weather.daily[1]) {
+        const d1 = weather.daily[1];
+        const small = el("div", "small wx-daily");
+        const tomorrowIcon = wxCodeToIcon(d1.code);
+        small.innerHTML = `${tomorrowIcon} Morgen: ${Math.round(d1.tmin)} – ${Math.round(d1.tmax)}°`;
         box.appendChild(small);
       }
     } else {
