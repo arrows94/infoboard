@@ -314,7 +314,7 @@ function buildInfoColumn(cfg, weather) {
     const lG = el("div", "light");
     const lY = el("div", "light");
     const lR = el("div", "light");
-    lights.append(lG, lY, lR);
+    lights.append(lR, lY, lG);
 
     if (status === "green") lG.classList.add("on", "green");
     if (status === "yellow") lY.classList.add("on", "yellow");
