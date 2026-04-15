@@ -717,10 +717,35 @@ function renderEventsList() {
   const frag = document.createDocumentFragment();
   items.forEach((item, index) => {
     const row = document.createElement("div");
-    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 8px 12px; border-radius: 4px; border: 1px solid #444;";
+    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 8px 12px; border-radius: 4px; border: 1px solid #444; min-height: 40px;";
+
+    // Parsing existing item to extract date and text for pre-filling
+    let dateStr = "";
+    let textStr = "";
+    const match = item.match(/^(\d{2}\.\d{2}\.\d{4})\s+(.*)$/);
+    if (match) {
+      dateStr = match[1];
+      textStr = match[2];
+    } else {
+      textStr = item;
+    }
+
+    const viewMode = document.createElement("div");
+    viewMode.style.cssText = "display: flex; justify-content: space-between; align-items: center; width: 100%;";
 
     const textSpan = document.createElement("span");
     textSpan.textContent = item;
+
+    const actionsDiv = document.createElement("div");
+    actionsDiv.style.cssText = "display: flex; gap: 8px;";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn";
+    editBtn.textContent = "Bearbeiten";
+    editBtn.style.padding = "4px 8px";
+    editBtn.style.fontSize = "12px";
+    editBtn.setAttribute("aria-label", `Termin bearbeiten: ${item}`);
 
     const delBtn = document.createElement("button");
     delBtn.type = "button";
@@ -734,8 +759,108 @@ function renderEventsList() {
       renderEventsList();
     };
 
-    row.appendChild(textSpan);
-    row.appendChild(delBtn);
+    actionsDiv.appendChild(editBtn);
+    actionsDiv.appendChild(delBtn);
+
+    viewMode.appendChild(textSpan);
+    viewMode.appendChild(actionsDiv);
+
+    // Edit Mode container
+    const editMode = document.createElement("div");
+    editMode.style.cssText = "display: none; justify-content: space-between; align-items: center; width: 100%; gap: 8px;";
+
+    const editDateInput = document.createElement("input");
+    editDateInput.type = "date";
+    editDateInput.className = "input";
+    editDateInput.style.padding = "4px";
+    editDateInput.style.fontSize = "12px";
+    editDateInput.style.flex = "0 0 auto";
+    if (match) {
+      const parts = dateStr.split(".");
+      editDateInput.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    const editTextInput = document.createElement("input");
+    editTextInput.type = "text";
+    editTextInput.className = "input";
+    editTextInput.value = textStr;
+    editTextInput.style.padding = "4px";
+    editTextInput.style.fontSize = "12px";
+    editTextInput.style.flex = "1";
+
+    const editActionsDiv = document.createElement("div");
+    editActionsDiv.style.cssText = "display: flex; gap: 8px;";
+
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.className = "btn primary";
+    saveBtn.textContent = "Speichern";
+    saveBtn.style.padding = "4px 8px";
+    saveBtn.style.fontSize = "12px";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn";
+    cancelBtn.textContent = "Abbrechen";
+    cancelBtn.style.padding = "4px 8px";
+    cancelBtn.style.fontSize = "12px";
+
+    editActionsDiv.appendChild(saveBtn);
+    editActionsDiv.appendChild(cancelBtn);
+
+    editMode.appendChild(editDateInput);
+    editMode.appendChild(editTextInput);
+    editMode.appendChild(editActionsDiv);
+
+    // Toggle logic
+    editBtn.onclick = () => {
+      viewMode.style.display = "none";
+      editMode.style.display = "flex";
+    };
+
+    cancelBtn.onclick = () => {
+      editMode.style.display = "none";
+      viewMode.style.display = "flex";
+      // Reset values to original
+      if (match) {
+        const parts = dateStr.split(".");
+        editDateInput.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      } else {
+        editDateInput.value = "";
+      }
+      editTextInput.value = textStr;
+    };
+
+    saveBtn.onclick = () => {
+      const newDateVal = editDateInput.value;
+      const newTextVal = editTextInput.value.trim();
+
+      if (!newDateVal || !newTextVal) {
+        showToast("Bitte Datum und Beschreibung eingeben.");
+        return;
+      }
+
+      const parts = newDateVal.split("-");
+      if (parts.length === 3) {
+        const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+        const newItem = `${formattedDate} ${newTextVal}`;
+        config.events.items[index] = newItem;
+
+        config.events.items.sort((a, b) => {
+          const parseDate = (str) => {
+            const m = str.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+            if (!m) return 0;
+            return new Date(`${m[3]}-${m[2]}-${m[1]}`).getTime();
+          };
+          return parseDate(a) - parseDate(b);
+        });
+
+        renderEventsList();
+      }
+    };
+
+    row.appendChild(viewMode);
+    row.appendChild(editMode);
     frag.appendChild(row);
   });
 
