@@ -205,11 +205,16 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-size: 52px;
 }
 .wx-current .wx-icon {
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   color: var(--accent);
+}
+.box .wx-label,
+.box .wx-daily {
+  font-size: 18px;
 }
 .wx-label {
   display: flex;
