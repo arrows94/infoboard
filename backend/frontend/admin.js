@@ -774,6 +774,7 @@ function renderEventsList() {
     editDateInput.className = "input";
     editDateInput.style.padding = "4px";
     editDateInput.style.fontSize = "12px";
+    editDateInput.style.width = "110px";
     editDateInput.style.flex = "0 0 auto";
     if (match) {
       const parts = dateStr.split(".");
@@ -787,6 +788,7 @@ function renderEventsList() {
     editTextInput.style.padding = "4px";
     editTextInput.style.fontSize = "12px";
     editTextInput.style.flex = "1";
+    editTextInput.style.minWidth = "100px";
 
     const editActionsDiv = document.createElement("div");
     editActionsDiv.style.cssText = "display: flex; gap: 8px;";
