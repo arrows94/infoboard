@@ -105,15 +105,19 @@ function bindConfigToForm() {
   setTheme(config.theme);
   document.getElementById("theme").value = config.theme || "mint";
   document.getElementById("mode").value = config.layout?.mode || "carousel";
-  document.getElementById("aspectRatio").value = config.layout?.image_aspect_ratio || "auto";
+  document.getElementById("aspectRatio").value =
+    config.layout?.image_aspect_ratio || "auto";
   document.getElementById("showInfo").checked =
     !!config.layout?.show_info_column;
-  document.getElementById("sidebarWidth").value = config.layout?.sidebar_width || "280px";
+  document.getElementById("sidebarWidth").value =
+    config.layout?.sidebar_width || "280px";
   document.getElementById("showTicker").checked = !!config.layout?.show_ticker;
 
   document.getElementById("intervalSec").value =
     config.carousel?.interval_sec ?? 10;
   document.getElementById("shuffle").checked = !!config.carousel?.shuffle;
+  document.getElementById("animation").value =
+    config.carousel?.animation || "fade";
 
   document.getElementById("textTitle").value = config.text_panel?.title ?? "";
   document.getElementById("textMarkdown").value =
@@ -198,6 +202,7 @@ function readFormToConfig() {
     120,
   );
   const shuffle = document.getElementById("shuffle").checked;
+  const animation = document.getElementById("animation").value;
 
   const textTitle = document.getElementById("textTitle").value;
   const textMarkdown = document.getElementById("textMarkdown").value;
@@ -257,6 +262,7 @@ function readFormToConfig() {
     ...config.carousel,
     interval_sec: intervalSec,
     shuffle,
+    animation,
     folders: carouselFolders,
   };
   config.text_panel = { title: textTitle, markdown: textMarkdown };
@@ -271,7 +277,13 @@ function readFormToConfig() {
       lon: weatherLon,
       units: "metric",
     },
-    ampel: { enabled: ampelEnabled, layout: ampelLayout, status: ampelStatus, label: ampelLabel, details: ampelDetails },
+    ampel: {
+      enabled: ampelEnabled,
+      layout: ampelLayout,
+      status: ampelStatus,
+      label: ampelLabel,
+      details: ampelDetails,
+    },
     custom: [
       { title: customTitle, markdown: customMarkdown, enabled: customEnabled },
     ],
@@ -517,7 +529,8 @@ function openFolder(folderId, folderName) {
     const emptyMsg = document.createElement("p");
     emptyMsg.className = "muted";
     emptyMsg.style.cssText = "margin: 15px;";
-    emptyMsg.textContent = "Dieser Ordner ist noch leer. Bitte lade Bilder hoch.";
+    emptyMsg.textContent =
+      "Dieser Ordner ist noch leer. Bitte lade Bilder hoch.";
     grid.appendChild(emptyMsg);
     return;
   }
@@ -554,7 +567,7 @@ function openFolder(folderId, folderName) {
     check.style.cssText =
       "position:absolute; top:5px; left:5px; transform:scale(1.3); cursor:pointer;";
     check.checked = selectedImages.has(im.id);
-    check.setAttribute("aria-label", `Bild ${im.filename || 'auswählen'}`);
+    check.setAttribute("aria-label", `Bild ${im.filename || "auswählen"}`);
     check.onchange = () => toggleSelection(im.id);
 
     // Dataset ID speichern für schnelles UI Update
@@ -717,7 +730,8 @@ function renderEventsList() {
   const frag = document.createDocumentFragment();
   items.forEach((item, index) => {
     const row = document.createElement("div");
-    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 8px 12px; border-radius: 4px; border: 1px solid #444; min-height: 40px;";
+    row.style.cssText =
+      "display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 8px 12px; border-radius: 4px; border: 1px solid #444; min-height: 40px;";
 
     // Parsing existing item to extract date and text for pre-filling
     let dateStr = "";
@@ -731,7 +745,8 @@ function renderEventsList() {
     }
 
     const viewMode = document.createElement("div");
-    viewMode.style.cssText = "display: flex; justify-content: space-between; align-items: center; width: 100%;";
+    viewMode.style.cssText =
+      "display: flex; justify-content: space-between; align-items: center; width: 100%;";
 
     const textSpan = document.createElement("span");
     textSpan.textContent = item;
@@ -767,7 +782,8 @@ function renderEventsList() {
 
     // Edit Mode container
     const editMode = document.createElement("div");
-    editMode.style.cssText = "display: none; justify-content: space-between; align-items: center; width: 100%; gap: 8px;";
+    editMode.style.cssText =
+      "display: none; justify-content: space-between; align-items: center; width: 100%; gap: 8px;";
 
     const editDateInput = document.createElement("input");
     editDateInput.type = "date";

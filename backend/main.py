@@ -119,6 +119,7 @@ def default_config() -> Dict[str, Any]:
             "interval_sec": 10,
             "folders": "all",  # "all" or [folder_id,...]
             "shuffle": True,
+            "animation": "fade", # fade | slide | zoom | none
         },
         "text_panel": {
             "title": "Willkommen!",

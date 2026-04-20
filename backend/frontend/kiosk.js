@@ -1,4 +1,10 @@
-import { markdownToHtml, wxCodeToLabel, wxCodeToIcon, windIcon, clamp } from "./utils.js";
+import {
+  markdownToHtml,
+  wxCodeToLabel,
+  wxCodeToIcon,
+  windIcon,
+  clamp,
+} from "./utils.js";
 
 let state = null;
 let ws = null;
@@ -96,9 +102,12 @@ function buildCarousel(cfg, folders, imagesIndex) {
     return empty;
   }
 
+  const animationStyle = cfg.carousel?.animation || "fade";
+  const animClass = `anim-${animationStyle}`;
+
   if (images.length === 1) {
     const item = images[0];
-    const s = el("div", "slide active"); // active immediately
+    const s = el("div", `slide active ${animClass}`); // active immediately
 
     const cap = el("div", "caption");
     cap.textContent = item.folder_name;
@@ -127,9 +136,9 @@ function buildCarousel(cfg, folders, imagesIndex) {
     return container;
   }
 
-  // two-slide crossfade pool (more performant)
+  // two-slide pool (more performant)
   for (let i = 0; i < 2; i++) {
-    const s = el("div", "slide");
+    const s = el("div", `slide ${animClass}`);
 
     const img = document.createElement("img");
     img.alt = ""; // Decorative carousel image
@@ -184,8 +193,23 @@ function buildCarousel(cfg, folders, imagesIndex) {
 
     setSlide(slides[nextSlot], nextItem);
 
-    slides[nextSlot].root.classList.add("active");
-    slides[active].root.classList.remove("active");
+    if (animationStyle === "slide") {
+      // Temporarily disable transition to snap to the right side (100%)
+      slides[nextSlot].root.style.transition = "none";
+      slides[nextSlot].root.classList.remove("prev", "active");
+
+      // force reflow so the browser applies the start state
+      void slides[nextSlot].root.offsetWidth;
+
+      // Restore transition and apply new states
+      slides[nextSlot].root.style.transition = "";
+      slides[active].root.classList.remove("active");
+      slides[active].root.classList.add("prev");
+      slides[nextSlot].root.classList.add("active");
+    } else {
+      slides[nextSlot].root.classList.add("active");
+      slides[active].root.classList.remove("active");
+    }
 
     // cleanup previous video after transition
     const prevSlot = active;
