@@ -154,7 +154,11 @@ a {
 }
 
 .ampel-topbar-box {
-  background: linear-gradient(180deg, var(--surface) 0%, rgba(255,255,255,0.2) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--surface) 0%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
   border-radius: var(--radius);
   padding: 8px 16px;
   display: flex;
@@ -331,15 +335,17 @@ a {
 .carousel {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 }
 .slide {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 800ms ease;
+  pointer-events: none;
 }
 .slide.active {
   opacity: 1;
+  pointer-events: auto;
 }
 .slide img {
   width: 100%;
@@ -347,6 +353,42 @@ a {
   object-fit: cover;
   display: block;
   transform: scale(1.02);
+}
+
+/* Animations */
+/* Fade (Standard) */
+.slide.anim-fade {
+  transition: opacity 800ms ease;
+}
+
+/* Slide (Wischen von rechts) */
+.slide.anim-slide {
+  transition: transform 800ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(100%);
+  opacity: 1;
+}
+.slide.anim-slide.active {
+  transform: translateX(0);
+}
+.slide.anim-slide.prev {
+  transform: translateX(-100%);
+}
+
+/* Zoom */
+.slide.anim-zoom {
+  transition:
+    opacity 800ms ease,
+    transform 800ms ease;
+  transform: scale(1.1);
+}
+.slide.anim-zoom.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* None */
+.slide.anim-none {
+  transition: none;
 }
 .slide .caption {
   position: absolute;

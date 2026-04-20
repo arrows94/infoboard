@@ -78,10 +78,20 @@
           </div>
 
           <div class="row">
-            <label for="sidebarWidth" class="label">Breite der Info-Spalte</label>
-            <input id="sidebarWidth" class="input" type="text" placeholder="280px" />
+            <label for="sidebarWidth" class="label"
+              >Breite der Info-Spalte</label
+            >
+            <input
+              id="sidebarWidth"
+              class="input"
+              type="text"
+              placeholder="280px"
+            />
           </div>
-          <p class="muted">Tipp: Wert in Pixel (z.B. <code>280px</code>) oder Prozent (z.B. <code>25%</code>).</p>
+          <p class="muted">
+            Tipp: Wert in Pixel (z.B. <code>280px</code>) oder Prozent (z.B.
+            <code>25%</code>).
+          </p>
 
           <div class="row">
             <label for="showTicker" class="label">Liveticker</label>
@@ -109,6 +119,15 @@
             <label class="toggle"
               ><input id="shuffle" type="checkbox" /><span></span
             ></label>
+          </div>
+          <div class="row">
+            <label for="animation" class="label">Animation</label>
+            <select id="animation" class="input">
+              <option value="fade">Fade (Standard)</option>
+              <option value="slide">Slide (Wischen)</option>
+              <option value="zoom">Zoom</option>
+              <option value="none">Keine (Beste Performance für Pi)</option>
+            </select>
           </div>
           <div class="row">
             <label for="carouselFolders" class="label">Ordner</label>
@@ -177,14 +196,35 @@
           </div>
           <label class="label">Neuer Termin</label>
           <div class="row">
-            <input type="date" id="newEventDate" class="input" aria-label="Datum des Termins" />
-            <input type="text" id="newEventText" class="input" placeholder="Beschreibung (z.B. Frühlingsfest)" aria-label="Beschreibung des Termins" />
-            <button type="button" id="btnAddEvent" class="btn primary">Hinzufügen</button>
+            <input
+              type="date"
+              id="newEventDate"
+              class="input"
+              aria-label="Datum des Termins"
+            />
+            <input
+              type="text"
+              id="newEventText"
+              class="input"
+              placeholder="Beschreibung (z.B. Frühlingsfest)"
+              aria-label="Beschreibung des Termins"
+            />
+            <button type="button" id="btnAddEvent" class="btn primary">
+              Hinzufügen
+            </button>
           </div>
-          <div id="eventsList" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+          <div
+            id="eventsList"
+            style="
+              margin-top: 15px;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            "
+          >
             <!-- Termine werden hier dynamisch per JS eingefügt -->
           </div>
-          <p class="muted" style="margin-top: 10px;">
+          <p class="muted" style="margin-top: 10px">
             Vergangene Termine werden auf dem Kiosk automatisch ausgeblendet.
           </p>
 
